@@ -9,10 +9,10 @@ A manuscript describing PhyCLIP is available here:
 MANUSCRIPT LINK
 
 ## Installation
-PhyCLIP is written in Python 2.7 and is currently distributed in two versions depending on the user's accessibility to the following supported ILP solvers: 
-1. **PuLP** is a free, open-source LP modeler written in python (https://github.com/coin-or/pulp). 
+PhyCLIP is written in Python 2.7 and is currently distributed in two versions (phyclip-glpk.py and phyclip-gurobi.py) depending on the user's accessibility to the following supported ILP solvers: 
+1. **GLPK** (GNU Linear Programming Kit, https://www.gnu.org/software/glpk/) is a free and open-source package intended for solving large-scale linear programming, mixed integer programming, and other related problems. PyGLPK (http://tfinley.net/software/pyglpk/) is the Python module used to encapsulates the functionality of GLPK. 
 2. **Gurobi** optimizer (http://www.gurobi.com/) is a commercial linear and quadratic programming solver with free licenses available for academic users.
-<!-- The GNU Linear Programmiong Kit (**GLPK**; https://www.gnu.org/software/glpk/) is a free and open-source package intended for solving large-scale linear programming, mixed integer programming, and other related problems. -->
+<!-- The GNU Linear Programmiong Kit (**GLPK**; ) is a . -->
 
 ### Prerequisites  
 Several python libraries are required for **all** versions, including: 
@@ -28,7 +28,7 @@ Conda/Anaconda
 $conda install numpy scipy ete3 statsmodels
 ```
 
-### Gurobi version 
+### Gurobi version (phyclip-gurobi.py)
 If you are a university user (i.e. you have internet access from a recognized academic domain, e.g. '.edu' addresss), we reccomend running PhyCLIP with the Gurobi optimizer. The easiest way to install Gurobi is via the Anaconda platform:  
 
 1. If you are not using Anaconda for Python 2.7 or have **not** installed Anaconda in your operating system, visit http://www.gurobi.com/downloads/get-anaconda to download the appropriate installer (choose support for Python 2.7) and install the Anaconda platform to your system. 
@@ -39,10 +39,10 @@ If you are a university user (i.e. you have internet access from a recognized ac
 
 4. You can now access https://user.gurobi.com/download/licenses/free-academic to request for a free academic license. To install the license, enter the ```grbgetkey``` command along with the license key stipulated in the License Detail page in your command/terminal prompt. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required. 
 
-Finally, install PhyCLIP-gurobi: 
+Finally, install phyclip-gurobi.py by: 
 ```
 $cd phyclip-master/ 
 $python setup.py install
 ```
 
-### PuLP version
+### GLPK version (phyclip-glpk.py)
