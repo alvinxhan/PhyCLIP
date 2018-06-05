@@ -33,7 +33,7 @@ If you are a university user (i.e. you have internet access from a recognized ac
 
 1. If you are not using Anaconda for Python 2.7 or have **not** installed Anaconda in your operating system, visit http://www.gurobi.com/downloads/get-anaconda to download the appropriate installer (choose support for Python 2.7) and install the Anaconda platform to your system. 
 
-2. Once Anaconda is installed, enter ```conda install gurobi``` in your command/terminal prompt. 
+2. Once Anaconda is installed, enter ```conda install gurobi``` in your command/terminal prompt to install the Gurobi package. 
 
 3. You need to install a Gurobi licence next. Visit http://www.gurobi.com/registration/academic-license-reg to register for a free Gurobi account. Follow the instructions in the verification email from Gurobi to set your password and login to your Gurobi account via https://www.gurobi.com/login. 
 
