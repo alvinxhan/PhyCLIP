@@ -52,7 +52,7 @@ Finally, install phyclip.py by:
 $cd phyclip-master/ 
 $python setup.py install
 ```
-You may need sudo privileges for system-wide installation. Otherwise, it is also possible to use phyclip.py locally by adding the phyclip_modules foler to your $PYTHONPATH.
+You may need sudo privileges for system-wide installation. Otherwise, it is also possible to use phyclip.py locally by adding the phyclip_modules folder to your $PYTHONPATH.
 
 ## Usage 
 
