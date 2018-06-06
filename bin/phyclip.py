@@ -20,13 +20,13 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--input_file', required=True, type=str, help='Input file.')
     parser.add_argument('--treeinfo', type=str, help='Master tree information file.')
     parser.add_argument('--collapse_zero_branch_lengths', default=0, choices=[0, 1], type=int, help='Collapse nodes with zero branch lengths of tree prior to running PhyCLIP (default = %(default)s).')
-    parser.add_argument('--equivalent_zero_length', default=0.0000001, type=float, help='Maximum branch length to be rounded to zero if --collapse_zero_branch_lengths is called (advanced option, default = %(default)s).')
+    parser.add_argument('--equivalent_zero_length', default=0.0000001, type=float, help='Maximum branch length to be rounded to zero if the --collapse_zero_branch_lengths flag is passed (advanced option, default = %(default)s).')
 
     parser.add_argument('--gam_method', choices=['MAD', 'Qn'], default='Qn',  help='Method to estimate robust dispersion measure (default = %(default)s).')
     parser.add_argument('--hypo_test', choices=['Kuiper', 'KS'], default='Kuiper', help='Hypothesis test to use for statistical differentiation of distance distributions (default = %(default)s).')
     parser.add_argument('--preQ', default=0, choices=[0, 1], type=int, help='Perform Benjamini-Hochberg corrections of p-values BEFORE filtering nodes that are < minimum cluster size (advanced option, default = %(default)s).')
-    parser.add_argument('--subsume_sensitivity_induced_clusters', default=1, choices=[0, 1], type=int, help='Subsume cluster-size sensitivity-induced clades into parent clade (advanced option, default = %(default)s).')
-    parser.add_argument('--sensitivity_percentile', default=25, type=int, help='Percentile threshold of clade size distribution under which a clade is considered to be sensitivity-induced (advanced option, default = %(default)s percent).')
+    parser.add_argument('--subsume_sensitivity_induced_clusters', default=1, choices=[0, 1], type=int, help='Subsume cluster-size sensitivity-induced clusters into parent cluster (advanced option, default = %(default)s).')
+    parser.add_argument('--sensitivity_percentile', default=25, type=int, help='Percentile of cluster size distribution under which a cluster is considered to be sensitivity-induced (advanced option, default = %(default)s percent).')
     parser.add_argument('--ilp_verbose', default=0, choices=[0, 1], type=int, help='ILP solver verbose (default: %(default)s)')
     params = parser.parse_args()
 
@@ -145,7 +145,7 @@ if __name__ == '__main__':
         curr_node_to_descendant_nodes = dc({k:list(set(v)&set(curr_list_of_ancestral_node)) for k, v in global_node_to_descendant_nodes.items() if k in curr_list_of_ancestral_node})
 
         # dissociate subtrees
-        print ('dissociating potential clades...')
+        print ('dissociating potential clusters...')
         curr_node_to_leaves, curr_node_to_ancestral_nodes, curr_node_to_descendant_nodes, subtree_nodes = dissociate_subtrees(curr_list_of_ancestral_node, curr_node_to_leaves, curr_node_to_mean_pwdist, curr_node_to_ancestral_nodes, curr_node_to_descendant_nodes, curr_nodepair_to_qval, curr_wcl, global_node_to_ancestral_nodes, global_node_to_descendant_nodes, global_node_to_leaves)
 
         # update pairwise distance dictionaries/nodes' ancestry relations
@@ -229,7 +229,7 @@ if __name__ == '__main__':
                 curr_clusterid_to_taxa[clusterid] = [taxon]
 
         # post-ILP solver clean up
-        print('cleaning up clades...')
+        print('cleaning up clusters...')
         curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_taxon_to_supercluster = post_solver_cleanup(curr_clusterid_to_taxa, curr_taxon_to_clusterid, global_node_to_leaves, global_leaf_dist_to_node, curr_node_to_leaves, global_node_to_descendant_nodes)
 
         # clean up sensitivity-induced clusters
