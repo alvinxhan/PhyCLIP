@@ -2,7 +2,7 @@
 
 ## Overview
 
-PhyCLIP is a integer linear programming (ILP) approach that assigns statistically-principled clade membership to as many taxa as possible for a given **_rooted_** phylogenetic tree based on its pairwise patristic distance distribution, subject to the following statistical constraints: 
+PhyCLIP is an integer linear programming (ILP) approach that assigns statistically-principled clade membership to as many taxa as possible for a given **_rooted_** phylogenetic tree based on its pairwise patristic distance distribution, subject to the following statistical constraints: 
 1. Minimum number of taxa in a cluster (_cs_)
 2. Multiple (_gamma_) of deviations from the grand median of the mean pairwise patristic distance that defines the within-cluster limit.
 3. False discovery rate (_fdr_) for rejecting the null hypotheses that the pairwise patristic distance distributions of every combinatorial pair of clusters are empirically equivalent to that should they form a single cluster.
