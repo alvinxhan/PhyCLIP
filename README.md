@@ -58,7 +58,7 @@ You may need sudo privileges for system-wide installation. Otherwise, it is also
 ## Usage 
 
 ### Input file format
-Prior to running phyclip.py, you generate an input text file in the following format: 
+Prior to running phyclip.py, prepare the input text file in the following format: 
 ```
 /path/to/input_newick_tree.nwk
 cs1,fdr1,gam1
