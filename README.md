@@ -2,7 +2,7 @@
 
 ## Overview
 
-PhyCLIP is an integer linear programming (ILP) approach that assigns statistically-principled clade membership to as many taxa as possible for a given **_rooted_** phylogenetic tree based on its pairwise patristic distance distribution. Other than the phylogeny, 3 additional inputs are required from the user:  
+PhyCLIP is an integer linear programming (ILP) approach that assigns statistically-principled clade membership to as many taxa as possible for a given **_rooted_** phylogenetic tree based on its pairwise patristic distance distribution. Other than the phylogeny, 3 additional inputs are required from the user: 
 1. Minimum number of taxa in a cluster (_cs_)
 2. Multiple (_gamma_) of deviations from the grand median of the mean pairwise patristic distance that defines the within-cluster limit.
 3. False discovery rate (_fdr_) for rejecting the null hypotheses that the pairwise patristic distance distributions of every combinatorial pair of clusters are empirically equivalent to that should they form a single cluster.
@@ -44,19 +44,34 @@ If you are a university user (i.e. you have internet access from a recognized ac
 4. You can now access https://user.gurobi.com/download/licenses/free-academic to request for a free academic license. To install the license, enter the ```grbgetkey``` command along with the license key stipulated in the License Detail page in your command/terminal prompt. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required. 
 
 #### GLPK
+_To be implemented_
 
 ### Install PhyCLIP 
 
 Finally, install phyclip.py by: 
 ```
-$cd phyclip-master/ 
+$cd PhyCLIP-master/ 
 $python setup.py install
 ```
 You may need sudo privileges for system-wide installation. Otherwise, it is also possible to use phyclip.py locally by adding the phyclip_modules folder to your $PYTHONPATH.
 
 ## Usage 
 
-### Input file
+### Input file format
+Prior to running phyclip.py, you generate an input text file in the following format: 
+```
+/path/to/input_newick_tree.nwk
+cs1,fdr1,gam1
+cs2,fdr2,gam2
+...
+
+E.g. (input_example.txt in examples/ folder): 
+examples/example.nwk
+3,0.2,2
+5,0.2,1
+```
+
+### Running phyclip.py
 
 ```
 usage: phyclip.py [-h] -i INPUT_FILE [--treeinfo TREEINFO]
