@@ -42,14 +42,11 @@ If you are a university user (i.e. you have internet access from a recognized ac
 
 1. Make sure you have Anaconda for Python 2.7 installed (see above). 
 
-2. Install the Gurobi package via conda: 
-```$ conda install gurobi```
+2. Install the Gurobi package via conda: ```$ conda install gurobi```
 
 3. You need to install a Gurobi licence next. Visit http://www.gurobi.com/registration/academic-license-reg to register for a free Gurobi account. Follow the instructions in the verification email from Gurobi to set your password and login to your Gurobi account via https://www.gurobi.com/login. 
 
-4. You can now access https://user.gurobi.com/download/licenses/free-academic to request for a free academic license. To install the license: 
-```$ grbgetkey XXX-XXX-XXX-XXX``` 
-where command along with the license key stipulated in the License Detail page in your command/terminal prompt. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required. 
+4. You can now access https://user.gurobi.com/download/licenses/free-academic to request for a free academic license. To install the license:  ```$ grbgetkey XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` where ```XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` is your unique license key stipulated in the License Detail page. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required. 
 
 #### GLPK
 
