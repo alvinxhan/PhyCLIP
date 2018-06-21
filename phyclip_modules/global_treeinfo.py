@@ -34,6 +34,7 @@ class get_global_tree_info(object):
         2) Annotate node id to tree string.
         3) Get leaf to node distances.
         4) Calculate pairwise inter-node distances using leaf to node distances
+        5) Calculate mean distance of child-nodes of each node to root
         '''
 
         tree_string = self.tree_object.write(format=5)  # append node id annotation
@@ -42,15 +43,21 @@ class get_global_tree_info(object):
         node_to_leaves = {}
         nindex_to_node = {}
         node_to_nindex = {}
+        node_to_parent_node = {}
 
         # level-order traversal
         for n, node in enumerate(self.tree_object.traverse()):
             if node.is_leaf():
                 continue
 
-            node_to_leaves[n] = node.get_leaf_names()
             nindex_to_node[n] = node
             node_to_nindex[node] = n
+
+            # get parent node (except for root)
+            try:
+                node_to_parent_node[n] = node_to_nindex[node.up]
+            except:
+                pass
 
             # node annotation for final tree output
             node_string = re.sub('[^\)]+$', '', node.write(format=5))
@@ -74,7 +81,10 @@ class get_global_tree_info(object):
                 with open(self.treeinfo_fname, self.initial_write_state) as output:
                     output.write('L{},N{},D{}\n'.format(leaf, n, dist))
 
-        # Calulating inter-node distances
+            # sort leaves by distance to node in reverse-order
+            node_to_leaves[n] = sorted(node.get_leaf_names(), key=lambda leaf: self.leaf_dist_to_node[leaf][n], reverse=True)
+
+        # calculate inter-node distances using leaf_dist_to_node
         ancestral_nodepair_to_dist = {}
         for leaf, node_to_dist in self.leaf_dist_to_node.items():
             ancestors_of_leaf = node_to_dist.keys()[:]
@@ -117,22 +127,29 @@ class get_global_tree_info(object):
                     sibling_nodepair_to_dist[j] = {i:ij_dist}
 
         nodepair_to_dist = ancestral_nodepair_to_dist.copy()
+
         for i in nodepair_to_dist.keys():
+            nodepair_to_dist[i][i] = 0
             try:
                 nodepair_to_dist[i].update(sibling_nodepair_to_dist[i])
             except:
                 continue
 
-        return tree_string, taxon_list, node_to_leaves, nindex_to_node, node_to_nindex, self.leaf_dist_to_node, nodepair_to_dist
+        # get mean distance of children nodes of each node to root
+        node_to_mean_child_dist2root = {n:np.mean([self.leaf_dist_to_node[child.name][0] if child.is_leaf() else nodepair_to_dist[node_to_nindex[child]][0] for child in nindex_to_node[n].get_children()]) for n in node_to_leaves.keys()}
 
-    def pwdist_dist_and_ancestral_trace(self, all_taxa_len, node_to_leaves, nindex_to_node, node_to_nindex):
+        return tree_string, taxon_list, node_to_leaves, nindex_to_node, node_to_nindex, self.leaf_dist_to_node, nodepair_to_dist, node_to_parent_node, node_to_mean_child_dist2root
+
+    def pwdist_dist_and_ancestral_trace(self, all_taxa_len, node_to_leaves, nindex_to_node, node_to_nindex, node_to_mean_child_dist2root, nodepair_to_dist):
         '''
         1) Get pairwise distances of all leaves
         2) Get ancestral/descendant traces
         3) Get pairwise distance distributions of nodes
+        4) Get leaf to ancestor trace
+        5) Get mean child-nodes distance to ancestral trace
         '''
         if len(self.leafpair_to_distance) < nCr(all_taxa_len, 2):
-            print ('Get pairwise distances between leaves...')
+            print ('Parsing all pairwise distances between leaves...')
             for x, y in itertools.combinations(self.tree_object.get_leaves(), 2):
                 leaf_x = x.name
                 leaf_y = y.name
@@ -152,9 +169,22 @@ class get_global_tree_info(object):
         node_to_descendant_nodes = {}
         node_to_pwdist = {}
         node_to_mean_pwdist = {}
+        leaf_to_ancestors = {}
+        node_to_mean_child_dist2anc = {}
 
-        for n, leaves in node_to_leaves.items():
+        for n in sorted(node_to_mean_child_dist2root, key=node_to_mean_child_dist2root.get):
+            leaves = node_to_leaves[n]
+            mean_dist2root = node_to_mean_child_dist2root[n]
+
+            # get leaf to ancestor nodes subtending it
+            for leaf in leaves:
+                try:
+                    leaf_to_ancestors[leaf].append(n)
+                except:
+                    leaf_to_ancestors[leaf] = [n]
+
             ancestors_to_n = [node_to_nindex[anc] for anc in nindex_to_node[n].iter_ancestors()]
+
             node_to_ancestral_nodes[n] = ancestors_to_n
             for anc in ancestors_to_n:
                 try:
@@ -162,11 +192,16 @@ class get_global_tree_info(object):
                 except:
                     node_to_descendant_nodes[anc] = [n]
 
+                try:
+                    node_to_mean_child_dist2anc[n][anc] = mean_dist2root - nodepair_to_dist[anc][0]
+                except:
+                    node_to_mean_child_dist2anc[n] = {anc:mean_dist2root - nodepair_to_dist[anc][0]}
+
             pwdist = sorted([self.leafpair_to_distance[(x,y)] for (x,y) in itertools.combinations(leaves, 2)])
             node_to_pwdist[n] = pwdist
             node_to_mean_pwdist[n] = np.mean(pwdist)
 
-        return self.leafpair_to_distance, node_to_pwdist, node_to_mean_pwdist, node_to_ancestral_nodes, node_to_descendant_nodes
+        return self.leafpair_to_distance, node_to_pwdist, node_to_mean_pwdist, node_to_ancestral_nodes, node_to_descendant_nodes, leaf_to_ancestors, node_to_mean_child_dist2anc
 
     def get_global_pval(self, no_of_internal_nodes, hytest_method, node_to_leaves, node_to_ancestral_nodes, node_to_pwdist, leafpair_to_distance):
         '''
@@ -175,7 +210,7 @@ class get_global_tree_info(object):
         if len(self.nodepair_to_pval) < nCr(no_of_internal_nodes, 2):
             from phyclip_modules import inter_cluster_hytest
 
-            print ('Performing global {} tests...'.format(hytest_method))
+            print ('Performing {} tests...'.format(hytest_method))
 
             for i,j in itertools.combinations(node_to_leaves.keys(), 2):
                 try:

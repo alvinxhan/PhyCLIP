@@ -4,12 +4,12 @@ class phyclip_output(object):
     """
     Print output cluster and tree files
     """
-    def __init__(self, tree_string, taxon_to_clusterid, taxon_list, taxon_to_supercluster, sensitivity_subsumed_taxa_to_clusterid, outfname):
+    def __init__(self, tree_string, taxon_to_clusterid, taxon_list, sensitivity_subsumed_taxa_to_clusterid, nosub_taxa_to_clusterid, outfname):
         self.tree_string = tree_string
         self.taxon_to_clusterid = taxon_to_clusterid
         self.taxon_list = taxon_list
-        self.taxon_to_supercluster = taxon_to_supercluster
         self.sensitivity_subsumed_taxa_to_clusterid = sensitivity_subsumed_taxa_to_clusterid
+        self.nosub_taxa_to_clusterid = nosub_taxa_to_clusterid
         self.outfname = outfname
 
     def cluster_output(self):
@@ -18,14 +18,20 @@ class phyclip_output(object):
 
         with open('cluster_{}.txt'.format(self.outfname), 'w') as output:
 
-            output.write('CLUSTER\tTAXA\tUnclustered>Supercluster\tSensitivity-subsumed\n')
+            output.write('CLUSTER\tTAXA\tSensitivity-induced (original cluster-node-id)\tSub-cluster subsumed into parent (original cluster-node-id)\n')
             for taxon, clusterid in self.taxon_to_clusterid.items():
 
-                output.write('{}\t{}{}{}\n'.format(clusterid, taxon, '\tY' if taxon in self.taxon_to_supercluster else '', '\tY' if taxon in self.sensitivity_subsumed_taxa_to_clusterid else ''))
+
+                output.write('{}\t{}'.format(clusterid, taxon))
+                if self.sensitivity_subsumed_taxa_to_clusterid != False:
+                    output.write('\t{}'.format(self.sensitivity_subsumed_taxa_to_clusterid[taxon] if taxon in self.sensitivity_subsumed_taxa_to_clusterid else ''))
+                if self.nosub_taxa_to_clusterid != False:
+                    output.write('\t{}'.format(self.nosub_taxa_to_clusterid[taxon] if taxon in self.nosub_taxa_to_clusterid else ''))
+                output.write('\n')
 
                 taxon_start_index = curr_tree_string.find(taxon)
                 if taxon_start_index < 0:
-                    raise TypeError('Error parsing {} in tree string.'.format(taxon))
+                    raise SystemExit('\nERROR: Problem parsing taxon ({}) in tree string.\n'.format(taxon))
                 else:
                     curr_tree_string = curr_tree_string.replace(taxon, "'{}'[&CLUSTER='{}']".format(re.sub("(^'|'$)", "", taxon), clusterid))
 
@@ -51,7 +57,7 @@ class phyclip_output(object):
 
                 taxon_start_index = modified_tree_string.find("'{}'".format(re.sub("(^'|'$)", '', taxon)))
                 if taxon_start_index < 0:
-                    raise TypeError('Error parsing {} in tree string.'.format(taxon))
+                    raise SystemExit('\nERROR: Problem parsing taxon ({}) in tree string.\n'.format(taxon))
                 else:
                     modified_tree_string = modified_tree_string.replace("'{}'".format(re.sub("(^'|'$)", "", taxon)), str(i+1))
 
