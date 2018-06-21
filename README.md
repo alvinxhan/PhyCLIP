@@ -38,7 +38,7 @@ PhyCLIP currently supports two ILP solvers. You can choose either **_ONE_** to i
 2. **GLPK** (GNU Linear Programming Kit, https://www.gnu.org/software/glpk/) is a free and open-source package intended for solving large-scale linear programming, mixed integer programming, and other related problems.
 
 #### Gurobi
-If you are a university user (i.e. you have internet access from a recognized academic domain, e.g. '.edu' addresss), we reccomend running PhyCLIP with the Gurobi optimizer. The easiest way to install Gurobi is via the Anaconda platform:  
+If you are a university user (i.e. you have internet access from a recognized academic domain, e.g. '.edu' addresss), we highly reccomend running PhyCLIP with the Gurobi solver. The easiest way to install Gurobi is via the Anaconda platform:  
 
 1. Make sure you have Anaconda for Python 2.7 installed (see above). 
 
@@ -46,10 +46,13 @@ If you are a university user (i.e. you have internet access from a recognized ac
 
 3. You need to install a Gurobi licence next. Visit http://www.gurobi.com/registration/academic-license-reg to register for a free Gurobi account. Follow the instructions in the verification email from Gurobi to set your password and login to your Gurobi account via https://www.gurobi.com/login. 
 
-4. You can now access https://user.gurobi.com/download/licenses/free-academic to request for a free academic license. To install the license:  ```$ grbgetkey XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` where ```XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` is your unique license key stipulated in the License Detail page. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required. 
+4. You can now access https://user.gurobi.com/download/licenses/free-academic to request for a free academic license. 
+
+5. To install the license:  ```$ grbgetkey XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` where ```XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` is your unique license key stipulated in the License Detail webpage. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required for this step. 
 
 #### GLPK
 
+You can easily install both Pyomo and GLPK via Anaconda: 
 ```
 $ conda install -c conda-forge pyomo glpk
 ```
@@ -88,17 +91,21 @@ You can use progarms such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/
 usage: phyclip.py [-h] -i INPUT_FILE [--treeinfo TREEINFO]
                   [--collapse_zero_branch_lengths {0,1}]
                   [--equivalent_zero_length EQUIVALENT_ZERO_LENGTH]
-                  [--gam_method {MAD,Qn}] [--hypo_test {Kuiper,KS}]
+                  [--gam_method {MAD,Qn}] [--hypo_test {Kuiper,KolSmi}]
                   [--preQ {0,1}]
                   [--subsume_sensitivity_induced_clusters {0,1}]
                   [--sensitivity_percentile SENSITIVITY_PERCENTILE]
+                  [--subsume_subclusters {0,1}] [--solver {glpk,gurobi}]
                   [--ilp_verbose {0,1}]
+
+Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1
 
 optional arguments:
   -h, --help            show this help message and exit
   -i INPUT_FILE, --input_file INPUT_FILE
                         Input file.
-  --treeinfo TREEINFO   Master tree information file.
+  --treeinfo TREEINFO   Tree information file generated from previous PhyCLIP
+                        run.
   --collapse_zero_branch_lengths {0,1}
                         Collapse nodes with zero branch lengths of tree prior
                         to running PhyCLIP (default = 0).
@@ -109,7 +116,7 @@ optional arguments:
   --gam_method {MAD,Qn}
                         Method to estimate robust dispersion measure (default
                         = Qn).
-  --hypo_test {Kuiper,KS}
+  --hypo_test {Kuiper,KolSmi}
                         Hypothesis test to use for statistical differentiation
                         of distance distributions (default = Kuiper).
   --preQ {0,1}          Perform Benjamini-Hochberg corrections of p-values
@@ -121,7 +128,13 @@ optional arguments:
   --sensitivity_percentile SENSITIVITY_PERCENTILE
                         Percentile of cluster size distribution under which a
                         cluster is considered to be sensitivity-induced
-                        (advanced option, default = 25 percent).
+                        (advanced option, default = 25%).
+  --subsume_subclusters {0,1}
+                        Subsume sub-clusters into their respective parent
+                        clusters (advanced option, default = 0).
+  --solver {glpk,gurobi}
+                        Preferred ILP solver IF more than one solvers are
+                        available (default: gurobi).
   --ilp_verbose {0,1}   ILP solver verbose (default: 0)
 
 ```
