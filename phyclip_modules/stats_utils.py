@@ -252,7 +252,7 @@ def multiple_testing_correction(pval_dict):
         qval_dict[(j,i)] = qval_dict[(i,j)] = qval_list[_]
     return qval_dict
 
-def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit):
+def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index):
     """
     Summary stats of within- and inter-clade divergence
     """
@@ -307,7 +307,7 @@ def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepai
                    np.mean(intercluster_dist), sd_intercluster_dist, median_intercluster, mad_intercluster, min(intercluster_dist), max(intercluster_dist)]
 
         output.write('{}\t{}\t{}\t'
-                     '{}\t{}\t{}\t{}\t'
+                     '{}\t{}\t{}\t{}\t{}\t'
                      '{}\n'.format(min_cluster_size, fdr_cutoff, gamma,
-                                   hytest_method, dispersion_method, qval_determination, within_cluster_limit,
+                                   hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index,
                                    '\t'.join(map(str, results))))

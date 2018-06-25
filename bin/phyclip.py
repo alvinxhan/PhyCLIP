@@ -26,10 +26,35 @@ if __name__ == '__main__':
     parser.add_argument('--sensitivity_percentile', default=25, type=int, help='Percentile of cluster size distribution under which a cluster is considered to be sensitivity-induced (advanced option, default = %(default)s%%).')
     parser.add_argument('--subsume_subclusters', default=0, choices=[0, 1], type=int, help='Subsume sub-clusters into their respective parent clusters (advanced option, default = %(default)s).')
     parser.add_argument('--solver', default='gurobi', choices=['glpk', 'gurobi'], type=str, help='Preferred ILP solver IF more than one solvers are available (default: %(default)s).')
-    parser.add_argument('--ilp_verbose', default=0, choices=[0, 1], type=int, help='ILP solver verbose (default: %(default)s)')
+    parser.add_argument('--solver_verbose', default=0, choices=[0, 1], type=int, help='ILP solver verbose (default: %(default)s)')
+    parser.add_argument('--solver_check', action='store_true', help='Check available ILP solver(s) installed.')
     params = parser.parse_args()
 
     print ('{}\n\n{:^72}\n{:^72}\n\n{}'.format(''.join(['-']*72), 'Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)', 'Version 0.1', ''.join(['-']*72)))
+
+    # check solver availability
+    available_solvers = []
+    try:
+        # check for glpsol
+        import subprocess
+        cmd = ['glpsol', '--help']
+        subprocess.call(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        available_solvers.append('glpk')
+    except:
+        pass
+
+    try:
+        import gurobipy
+        available_solvers.append('gurobi')
+    except:
+        pass
+
+    if len(available_solvers) > 0:
+        # exit if only to check available ILP solver(s) installed
+        if params.solver_check:
+            raise SystemExit('\nAvailable solvers...{}\n'.format(', '.join(available_solvers)))
+    else:
+        raise SystemExit('\nERROR: No supported solvers installed. See manual for details.\n')
 
     # check input file format
     infhandle = filter(None, [_.strip() for _ in open(params.input_file, 'rU')])
@@ -57,34 +82,12 @@ if __name__ == '__main__':
             raise SystemExit('\nERROR: Invalid parameter set format in line {} of input file.\n'.format(_+2))
     print('Parameter sets...OK')
 
-    # check solver availability
-    available_solvers = []
-    try:
-        import pyomo
-        # check for glpsol
-        import subprocess
-        cmd = ['glpsol', '--help']
-        subprocess.call(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        available_solvers.append('glpk')
-    except:
-        pass
-
-    try:
-        import gurobipy
-        available_solvers.append('gurobi')
-    except:
-        pass
-
     # preferred solver
-    if len(available_solvers) == 0:
-        raise SystemExit('\nERROR: No supported solvers available. See --help and manual for details.\n')
-    else:
-        print('\nAvailable solvers...{}'.format(', '.join(available_solvers)))
-        if params.solver not in available_solvers:
-            print ('{} is not available.'.format(params.solver))
-            params.solver = available_solvers[0]
+    if params.solver not in available_solvers:
+        print ('\nWARNING: {} is not installed.'.format(params.solver))
+        params.solver = available_solvers[0]
 
-        print('Preferred solver...{}'.format(params.solver))
+    print('\nILP solver...{}'.format(params.solver))
 
     # ladderize tree
     tree.ladderize()
@@ -103,6 +106,10 @@ if __name__ == '__main__':
     print ('\nGetting tree information...')
 
     # parse treeinfo file if given
+    global_leaf_dist_to_node = {}
+    global_leafpair_to_distance = {}
+    global_nodepair_to_pval = {}
+
     if params.treeinfo:
         from phyclip_modules.tree_utils import parse_treeinfo_file
         try:
@@ -112,11 +119,23 @@ if __name__ == '__main__':
             raise SystemExit('\nERROR: Invalid treeinfo file.\n')
     else:
         params.treeinfo = '{}_treeinfo.txt'.format(treefname)
-        global_leaf_dist_to_node = {}
-        global_leafpair_to_distance = {}
-        global_nodepair_to_pval = {}
 
-    global_tree_info_obj = get_global_tree_info(tree, global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval, params.treeinfo)
+        import os
+        if params.treeinfo in os.listdir(os.getcwd()):
+            try:
+                overwrite_treeinfo = re.search('(y|n)', raw_input('\nWARNING: {} exists in current working directory. Overwrite? (y/n): '.format(params.treeinfo))).group()
+            except:
+                raise SystemExit('\nERROR: Invalid input.\n')
+
+            if overwrite_treeinfo == 'n':
+                from phyclip_modules.tree_utils import parse_treeinfo_file
+                try:
+                    global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval = parse_treeinfo_file(params.treeinfo, params.hypo_test)
+                    print('Treeinfo file...OK.')
+                except:
+                    raise SystemExit('\nERROR: Invalid treeinfo file.\n')
+
+    global_tree_info_obj = get_global_tree_info(tree, global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval, params.treeinfo, params.hypo_test)
 
     global_tree_string, taxon_list, global_node_to_leaves, global_nindex_to_node, global_node_to_nindex, global_leaf_dist_to_node, global_nodepair_to_dist, global_node_to_parent_node, global_node_to_mean_child_dist2root = global_tree_info_obj.node_indexing()
 
@@ -158,36 +177,31 @@ if __name__ == '__main__':
 
         # reassociate subtrees and leaves based on curr_wcl
         print ('\nReassociating subtrees/leaves...')
-        curr_node_to_leaves, curr_node_to_ancestral_nodes, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = [], [], [] ,[] # clear memory
+        curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = [], [], [] # clear memory
 
         # if (cs, gam) set is repeated, check if we have performed reassociation analyses before to speed up runs
         try:
-            curr_node_to_leaves, curr_node_to_ancestral_nodes, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = csgam_to_reassociation_memory[(cs, gam)]
+            curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = csgam_to_reassociation_memory[(cs, gam)]
         except:
-            nla_object = node_leaves_reassociation(cs, curr_wcl, params.gam_method, curr_list_of_ancestral_node, global_node_to_leaves, global_node_to_ancestral_nodes, global_node_to_descendant_nodes, global_node_to_mean_pwdist, global_node_to_mean_child_dist2anc, global_node_to_parent_node, global_nodepair_to_dist, global_leaf_dist_to_node, global_leaf_to_ancestors)
-            curr_node_to_leaves, curr_node_to_ancestral_nodes, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = nla_object.nla_main()
+            nla_object = node_leaves_reassociation(cs, curr_wcl, params.gam_method, curr_list_of_ancestral_node, global_node_to_leaves, global_node_to_descendant_nodes, global_node_to_mean_pwdist, global_node_to_mean_child_dist2anc, global_node_to_parent_node, global_nodepair_to_dist, global_leaf_dist_to_node, global_leaf_to_ancestors)
+
+            curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = nla_object.nla_main()
+
             # save to memory to speed up subsequent runs with the same cs/gam parameter set
-            csgam_to_reassociation_memory[(cs, gam)] = [curr_node_to_leaves, curr_node_to_ancestral_nodes, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist]
+            csgam_to_reassociation_memory[(cs, gam)] = [curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist]
 
         # update pairwise distance dictionaries/nodes' ancestry relations
         print ('Updating tree info...')
-        #curr_node_to_mean_pwdist = {}
-        curr_leaf_to_ancestors = {}
+        curr_leaves = []
         for node, leaves in curr_node_to_leaves.items():
             # filter by cs
             if len(leaves) < cs:
                 del curr_node_to_leaves[node]
                 continue
 
-            # get leaf to ancestor nodes dictionary
-            for leaf in leaves:
-                try:
-                    curr_leaf_to_ancestors[leaf].append(node)
-                except:
-                    curr_leaf_to_ancestors[leaf] = [node]
+            curr_leaves = list(set(curr_leaves)|set(leaves))
 
         curr_list_of_ancestral_node = curr_node_to_leaves.keys()[:]
-        curr_node_to_ancestral_nodes = {k:list(set(v)&set(curr_list_of_ancestral_node)) for k,v in curr_node_to_ancestral_nodes.items() if k in curr_list_of_ancestral_node and len(v) > 0}
         curr_node_to_descendant_nodes = {k:list(set(v)&set(curr_list_of_ancestral_node)) for k,v in curr_node_to_descendant_nodes.items() if k in curr_list_of_ancestral_node and len(v) > 0}
 
         # multiple-testing correction using BH procedure could be done without filtering for cs (pre) or post filtering for cs (post)
@@ -207,14 +221,14 @@ if __name__ == '__main__':
         if params.solver == 'gurobi':
             from phyclip_modules.gurobi_solver import gurobi_solver
             try:
-                all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaf_to_ancestors, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, params.ilp_verbose)
+                all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, params.solver_verbose)
             except:
                 raise SystemExit('\nERROR: Unable to solve ILP model using gurobi. You may try to use other available solvers by the --solver flag.\n')
 
         else:
-            from phyclip_modules.pyomo_glpk import pyomo_glpk
+            from phyclip_modules.glpk_solver import glpk_solver
             try:
-                all_solutions = pyomo_glpk(curr_node_to_leaves, curr_leaf_to_ancestors, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, params.ilp_verbose)
+                all_solutions = glpk_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, params.solver_verbose)
             except:
                 raise SystemExit('\nERROR: Unable to solve ILP model using glpk. You may try to use other available solvers by the --solver flag.\n')
 
@@ -239,7 +253,7 @@ if __name__ == '__main__':
                     curr_clusterid_to_taxa[clusterid] = [taxon]
 
             print('\nCleaning up clusters...')
-            cleanup_object = clean_up_modules(global_node_to_descendant_nodes, global_node_to_leaves, global_leafpair_to_distance, curr_node_to_leaves, curr_wcl, cs)
+            cleanup_object = clean_up_modules(curr_node_to_descendant_nodes, global_node_to_parent_node, global_node_to_leaves, global_leafpair_to_distance, curr_node_to_leaves, curr_wcl, cs)
 
             # ensure that the most descendant-possible node-id is subtending each cluster
             curr_clusterid_to_taxa, curr_taxon_to_clusterid = cleanup_object.most_desc_nodeid_for_cluster(curr_clusterid_to_taxa, curr_taxon_to_clusterid)

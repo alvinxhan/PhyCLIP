@@ -16,12 +16,13 @@ class get_global_tree_info(object):
     '''
     Get global tree information
     '''
-    def __init__(self, tree_object=None, leaf_dist_to_node=None, leafpair_to_distance=None, nodepair_to_pval=None, treeinfo_fname=None):
+    def __init__(self, tree_object=None, leaf_dist_to_node=None, leafpair_to_distance=None, nodepair_to_pval=None, treeinfo_fname=None, hypo_test_method=None):
         self.tree_object = tree_object
         self.leaf_dist_to_node = leaf_dist_to_node
         self.leafpair_to_distance = leafpair_to_distance
         self.nodepair_to_pval = nodepair_to_pval
         self.treeinfo_fname = treeinfo_fname
+        self.hypo_test_method = hypo_test_method
 
         if len(self.leaf_dist_to_node) == 0 and len(self.leafpair_to_distance) == 0 and len(self.nodepair_to_pval) == 0:
             self.initial_write_state = 'w'

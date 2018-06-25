@@ -70,14 +70,13 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
 # class of modules to reassociate node and leaves by current min cluster size and within-cluster limit
 class node_leaves_reassociation(object):
 
-    def __init__(self, min_cluster_size=None, within_cluster_limit=None, gam_method=None, nodes_list=None, node_to_leaves=None, node_to_ancestral_nodes=None, node_to_descendant_nodes=None, node_to_mean_pwdist=None, node_to_mean_child_dist2anc=None, node_to_parent_node=None, nodepair_to_dist=None, leaf_dist_to_node=None, leaf_to_ancestors=None):
+    def __init__(self, min_cluster_size=None, within_cluster_limit=None, gam_method=None, nodes_list=None, node_to_leaves=None, node_to_descendant_nodes=None, node_to_mean_pwdist=None, node_to_mean_child_dist2anc=None, node_to_parent_node=None, nodepair_to_dist=None, leaf_dist_to_node=None, leaf_to_ancestors=None):
 
         self.min_cluster_size = min_cluster_size
         self.within_cluster_limit = within_cluster_limit
         self.gam_method = gam_method
         self.nodes_list = nodes_list
         self.node_to_leaves = node_to_leaves
-        self.node_to_ancestral_nodes = node_to_ancestral_nodes
         self.node_to_descendant_nodes = node_to_descendant_nodes
         self.node_to_mean_pwdist = node_to_mean_pwdist
         self.node_to_mean_child_dist2anc = node_to_mean_child_dist2anc
@@ -196,7 +195,6 @@ class node_leaves_reassociation(object):
 
         # create deep copies to be edited
         sd_node_to_leaves = dc(self.node_to_leaves)
-        sd_node_to_ancestral_nodes = dc(self.node_to_ancestral_nodes)
         sd_node_to_descendant_nodes = dc(self.node_to_descendant_nodes)
         sd_node_to_mean_pwdist = {} # mean pairwise distance dictionary for current set of parameters
 
@@ -216,9 +214,6 @@ class node_leaves_reassociation(object):
                     try:
                         # dissociate descendant nodes from node if any
                         sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
-                        # dissociate node from descendants to dissociate
-                        for desc_node in descendant_nodes_to_dissociate:
-                            sd_node_to_ancestral_nodes[desc_node] = list(set(sd_node_to_ancestral_nodes[desc_node])-set([node]))
                     except:
                         pass
                     # update mean pwd dist
@@ -300,9 +295,6 @@ class node_leaves_reassociation(object):
                 # dissociate descendant nodes from node
                 descendant_nodes_to_dissociate = list(set(descendant_nodes_to_dissociate)|set(loo_descendant_nodes_to_dissociate))
                 sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
-                # dissociate node from descendants to dissociate
-                for desc_node in descendant_nodes_to_dissociate:
-                    sd_node_to_ancestral_nodes[desc_node] = list(set(sd_node_to_ancestral_nodes[desc_node])-set([node]))
 
                 # now check that there are no outlying leaves by distance to node
                 rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes[node], sd_node_to_leaves)
@@ -317,9 +309,6 @@ class node_leaves_reassociation(object):
                     sd_node_to_leaves[node] = leaves_to_keep[:]
                     # dissociate descendant nodes from node
                     sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
-                    # dissociate node from descendants to dissociate
-                    for desc_node in descendant_nodes_to_dissociate:
-                        sd_node_to_ancestral_nodes[desc_node] = list(set(sd_node_to_ancestral_nodes[desc_node])-set([node]))
                     # update mean pwd dist
                     sd_node_to_mean_pwdist[node] = mean_pwdist
 
@@ -341,9 +330,6 @@ class node_leaves_reassociation(object):
                         sd_node_to_leaves[node] = leaves_to_keep[:]
                         # dissociate descendant nodes from node
                         sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
-                        # dissociate node from descendants to dissociate
-                        for desc_node in descendant_nodes_to_dissociate:
-                            sd_node_to_ancestral_nodes[desc_node] = list(set(sd_node_to_ancestral_nodes[desc_node])-set([node]))
                         # update mean pwd dist
                         sd_node_to_mean_pwdist[node] = mean_pwdist
 
@@ -355,9 +341,6 @@ class node_leaves_reassociation(object):
                     sd_node_to_leaves[node] = leaves_to_keep[:]
                     # dissociate descendant nodes from node
                     sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
-                    # dissociate node from descendants to dissociate
-                    for desc_node in descendant_nodes_to_dissociate:
-                        sd_node_to_ancestral_nodes[desc_node] = list(set(sd_node_to_ancestral_nodes[desc_node])-set([node]))
 
                     # check that there are no outlying leaves by distance to node
                     rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes[node], sd_node_to_leaves)
@@ -372,23 +355,21 @@ class node_leaves_reassociation(object):
                         sd_node_to_leaves[node] = leaves_to_keep[:]
                         # dissociate descendant nodes from node
                         sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
-                        # dissociate node from descendants to dissociate
-                        for desc_node in descendant_nodes_to_dissociate:
-                            sd_node_to_ancestral_nodes[desc_node] = list(set(sd_node_to_ancestral_nodes[desc_node])-set([node]))
                         # update mean pwd dist
                         sd_node_to_mean_pwdist[node] = mean_pwdist
 
-        return sd_node_to_leaves, sd_node_to_ancestral_nodes, sd_node_to_descendant_nodes, sd_node_to_mean_pwdist
+        return sd_node_to_leaves, sd_node_to_descendant_nodes, sd_node_to_mean_pwdist
 
 # clean-up modules
 class clean_up_modules(object):
-    def __init__(self, node_to_descendant_nodes=None, node_to_leaves=None, leafpair_to_distance=None, current_node_to_leaves=None, within_cluster_limit=None, min_cluster_size=None):
-        self.node_to_descendant_nodes = node_to_descendant_nodes
+    def __init__(self, current_node_to_descendant_nodes=None, node_to_parent_node=None, node_to_leaves=None, leafpair_to_distance=None, current_node_to_leaves=None, within_cluster_limit=None, min_cluster_size=None):
+        self.current_node_to_descendant_nodes = current_node_to_descendant_nodes
         self.node_to_leaves = node_to_leaves
         self.leafpair_to_distance = leafpair_to_distance
         self.current_node_to_leaves = current_node_to_leaves
         self.within_cluster_limit = within_cluster_limit
         self.min_cluster_size = min_cluster_size
+        self.node_to_parent_node = node_to_parent_node
 
     def most_desc_nodeid_for_cluster(self, clusterid_to_taxa, taxon_to_clusterid):
         # clean up cluster id - must follow most descendant node
@@ -396,7 +377,7 @@ class clean_up_modules(object):
             taxa = clusterid_to_taxa[cluster]
             try:
                 # find the most descendant node which subtends all of clustered taxa
-                for node in sorted([cluster] + self.node_to_descendant_nodes[cluster], reverse=True):
+                for node in sorted([cluster] + self.current_node_to_descendant_nodes[cluster], reverse=True):
                     if set(taxa) <= set(self.current_node_to_leaves[node]):
                         break
             except:
@@ -435,12 +416,13 @@ class clean_up_modules(object):
         cluster_to_desc_clusters = {}
         for cluster in sorted(clusterid_to_taxa.keys()):
             try:
-                desc_clusters = list(set(self.node_to_descendant_nodes[cluster])&set(clusterid_to_taxa.keys()))
+                desc_clusters = list(set(self.current_node_to_descendant_nodes[cluster])&set(clusterid_to_taxa.keys()))
                 if len(desc_clusters) > 0:
                     cluster_to_desc_clusters[cluster] = desc_clusters
             except:
                 continue
 
+        """
         cluster_to_anc_clusters  = {}
         for cluster, desc_clusters in cluster_to_desc_clusters.items():
             for desc in desc_clusters:
@@ -448,14 +430,17 @@ class clean_up_modules(object):
                     cluster_to_anc_clusters[desc].append(cluster)
                 except:
                     cluster_to_anc_clusters[desc] = [cluster]
+        """
 
-        # check nodes which are <= 25 percentile and do not have any descending clusters
+        # check nodes which are <= x-percentile and do not have any descending clusters
         for cluster in sorted(clusterid_to_taxa.keys()):
             taxa = clusterid_to_taxa[cluster]
             if len(taxa) <= clusterlen_cutoff and cluster not in cluster_to_desc_clusters:
                 try:
-                    parent_cluster = sorted(cluster_to_anc_clusters[cluster])[-1]
-                    parent_taxa = clusterid_to_taxa[parent_cluster][:]
+                    #parent_cluster = sorted(cluster_to_anc_clusters[cluster])[-1]
+                    #parent_taxa = clusterid_to_taxa[parent_cluster][:]
+                    parent_node = self.node_to_parent_node[cluster]
+                    parent_taxa = clusterid_to_taxa[parent_node][:]
                 except:
                     continue
 
@@ -493,7 +478,7 @@ class clean_up_modules(object):
 
             # get descendant cluster nodes of current cluster
             try:
-                descendant_clusterids = list(set(self.node_to_descendant_nodes[clusterid])&set(clusterid_to_taxa.keys()))
+                descendant_clusterids = list(set(self.current_node_to_descendant_nodes[clusterid])&set(clusterid_to_taxa.keys()))
             except:
                 continue
 

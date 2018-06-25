@@ -13,7 +13,7 @@ MANUSCRIPT LINK
 ## Installation
 PhyCLIP is written in Python 2.7 (no support for Python 3 currently) and depends on several python libraries and at least one ILP solver. 
 
-To simplify the installation process, we highly reccomend that you use Anaconda, a free and open-source distribution of Python and package management system. Visit https://www.anaconda.com/download/ to download and install the **Python 2.7 version** distribution for your preferred OS. 
+To simplify the installation process, we highly reccomend that you use Anaconda, a free and open-source distribution of Python and package management system. Visit http://www.anaconda.com/download/ to download and install the **Python 2.7 version** distribution for your preferred OS. 
 
 ### Prerequisite: Python libraries    
 
@@ -35,20 +35,23 @@ $ pip install numpy scipy ete3 statsmodels
 PhyCLIP currently supports two ILP solvers. You can choose either **_ONE_** to install depending on your access to these solvers: 
 
 1. **Gurobi** optimizer (http://www.gurobi.com/) is a commercial linear and quadratic programming solver with FREE licenses available for academic users.
-2. **GLPK** (GNU Linear Programming Kit, https://www.gnu.org/software/glpk/) is a free and open-source package intended for solving large-scale linear programming, mixed integer programming, and other related problems.
+2. **GLPK** (GNU Linear Programming Kit, http://www.gnu.org/software/glpk/) is a free and open-source package intended for solving large-scale linear programming, mixed integer programming, and other related problems.
 
-If you are a university user (i.e. you have internet access from a recognized academic domain, e.g. '.edu' addresss), we highly reccomend running PhyCLIP with the Gurobi solver. While GLPK is free under the GNU General Public License, it performs poorly in terms of both speed and solvability (GLPK version 4.65 solved only 2 of the 87 standard test-set mixed-integer programming models whereas Gurobi is the fastest solver for all 87 benchmark problems, see http://plato.asu.edu/ftp/milpc.html). 
+If you are a university user (i.e. you have internet access from a recognized academic domain, e.g. '.edu' addresss), we highly reccomend running PhyCLIP with the Gurobi solver. GLPK performs poorly in terms of both speed and solvability (GLPK version 4.65 solved only 2 of the 87 standard test-set mixed-integer programming models whereas Gurobi is the fastest solver for all 87 benchmark problems, see http://plato.asu.edu/ftp/milpc.html). 
+
+Furthermore, as with any other linear programming problems, it is possible to obtain multiple optimal solutions. Currently, GLPK can only return ONE solution that is guaranteed to be the global optimal if and only if the feasible region is convex and bounded. However, this may not always be the case. Gurobi, on the other hand, generates a solution pool which may include > 1 optimal solution.
+
 
 #### Gurobi
 The easiest way to install Gurobi is via the Anaconda platform:
 
 1. Make sure you have Anaconda for Python 2.7 installed (see above). 
 
-2. Install the Gurobi package via conda: ```$ conda install gurobi```
+2. Install the Gurobi package via conda:```$ conda install gurobi```
 
-3. You need to install a Gurobi licence next. Visit http://www.gurobi.com/registration/academic-license-reg to register for a free Gurobi account. Follow the instructions in the verification email from Gurobi to set your password and login to your Gurobi account via https://www.gurobi.com/login. 
+3. You need to install a Gurobi licence next. Visit http://www.gurobi.com/registration/academic-license-reg to register for a free Gurobi account. Follow the instructions in the verification email from Gurobi to set your password and login to your Gurobi account via http://www.gurobi.com/login. 
 
-4. You can now access https://user.gurobi.com/download/licenses/free-academic to request for a free academic license. 
+4. You can now access http://user.gurobi.com/download/licenses/free-academic to request for a free academic license. Once requested, you will be brought to the License Detail webpage.
 
 5. To install the license:  ```$ grbgetkey XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` where ```XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` is your unique license key shown in the License Detail webpage. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required for this step. 
 
