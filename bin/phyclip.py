@@ -234,8 +234,8 @@ if __name__ == '__main__':
 
         if all_solutions == 'na':
             # continue to next parameter set if no solution
-            with open('cluster_{}_{}_cs{}_fdr{}_gam{}_sol0_{}'.format(params.gam_method.lower(), params.hypo_test.lower(), str(cs), str(fdr), str(gam), inputfname), 'w') as output:
-                output.write('NO OPTIMAL SOLUTION FOUND.')
+            with open(statsfname, 'a') as output:
+                output.write('{}\t{}\t{}\tNO OPTIMAL SOLUTION FOUND.\n'.format(cs, fdr, gam))
                 print ('\nNO OPTIMAL SOLUTION FOUND.')
             continue # continue to next parameter set
 
