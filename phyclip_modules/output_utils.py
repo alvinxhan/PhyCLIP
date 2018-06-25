@@ -4,19 +4,20 @@ class phyclip_output(object):
     """
     Print output cluster and tree files
     """
-    def __init__(self, tree_string, taxon_to_clusterid, taxon_list, sensitivity_subsumed_taxa_to_clusterid, nosub_taxa_to_clusterid, outfname):
+    def __init__(self, tree_string=None, taxon_to_clusterid=None, taxon_list=None, outfname=None, clean_up_status=None, sensitivity_subsumed_taxa_to_clusterid=False, nosub_taxa_to_clusterid=False):
         self.tree_string = tree_string
         self.taxon_to_clusterid = taxon_to_clusterid
         self.taxon_list = taxon_list
         self.sensitivity_subsumed_taxa_to_clusterid = sensitivity_subsumed_taxa_to_clusterid
         self.nosub_taxa_to_clusterid = nosub_taxa_to_clusterid
         self.outfname = outfname
+        self.clean_up_status = clean_up_status
 
     def cluster_output(self):
 
         curr_tree_string = self.tree_string
 
-        with open('cluster_{}.txt'.format(self.outfname), 'w') as output:
+        with open('cluster_{}_{}.txt'.format(self.clean_up_status, self.outfname), 'w') as output:
 
             output.write('CLUSTER\tTAXA\tSensitivity-induced (original cluster-node-id)\tSub-cluster subsumed into parent (original cluster-node-id)\n')
             for taxon, clusterid in self.taxon_to_clusterid.items():
@@ -39,7 +40,7 @@ class phyclip_output(object):
 
     def figtree_output(self, modified_tree_string):
 
-        with open('tree_{}.tre'.format(self.outfname), 'w') as output:
+        with open('tree_{}_{}.tre'.format(self.clean_up_status, self.outfname), 'w') as output:
             output.write('#NEXUS\nBegin taxon;\n\tDimensions ntax={};\n\t\tTaxlabels\n'.format(len(self.taxon_list)))
             for taxon in self.taxon_list:
                 if taxon in self.taxon_to_clusterid:

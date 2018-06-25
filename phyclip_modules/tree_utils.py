@@ -393,16 +393,6 @@ class clean_up_modules(object):
 
         return clusterid_to_taxa, taxon_to_clusterid
 
-    def get_cluster_size_distribution(self, clusterid_to_taxa):
-        clusterlen_to_frequency = {}
-        for clusterid in clusterid_to_taxa.keys():
-            try:
-                clusterlen_to_frequency[len(clusterid_to_taxa[clusterid])] += 1
-            except:
-                clusterlen_to_frequency[len(clusterid_to_taxa[clusterid])] = 1
-
-        return [i for j in [[clusterlen] * frequency for clusterlen, frequency in clusterlen_to_frequency.items()] for i in j]
-
     def subsume_subclusters_under_x_percentile(self, clusterid_to_taxa, taxon_to_clusterid, clusterlen_distribution, percentile):
 
         subsumed_taxa_to_clusterid = {}

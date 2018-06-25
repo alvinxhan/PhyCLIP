@@ -6,7 +6,7 @@ import re
 import itertools
 import numpy as np
 
-from phyclip_modules.stats_utils import qn, multiple_testing_correction, summary_stats
+from phyclip_modules.stats_utils import qn, multiple_testing_correction, summary_stats, get_cluster_size_distribution
 from phyclip_modules.tree_utils import parse_newick_tree
 from phyclip_modules import get_global_tree_info, phyclip_output, node_leaves_reassociation, clean_up_modules
 
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     # Header of final summary stats output
     statsfname = 'summary-stats_{}.txt'.format(inputfname)
     with open(statsfname, 'w') as output:
-        output.write('CS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\t'
+        output.write('CS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tClean_up\t'
                      '#_of_clustered_sequences\tTotal_no_of_sequences\t%\t#_of_clusters\t'
                      'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
                      'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
@@ -252,6 +252,23 @@ if __name__ == '__main__':
                 except:
                     curr_clusterid_to_taxa[clusterid] = [taxon]
 
+            #! --- print pre-clean up results start --- !#
+
+            print ('Writing outputs (pre-clean-up)...')
+            pre_clean_up_output_obj = phyclip_output(global_tree_string, curr_taxon_to_clusterid, taxon_list, curr_outfname, 'pre-clean')
+            # cluster file
+            pre_clean_up_modified_tree_string = pre_clean_up_output_obj.cluster_output()
+            # figtree annotated tree file
+            pre_clean_up_output_obj.figtree_output(pre_clean_up_modified_tree_string)
+
+            # append to summary stats output file
+            # get clusterlen distribution
+            pre_clean_up_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa)
+
+            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, pre_clean_up_clusterlen_distribution, statsfname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'pre-clean')
+
+            # ! --- print pre-clean up results end --- !#
+
             print('\nCleaning up clusters...')
             cleanup_object = clean_up_modules(curr_node_to_descendant_nodes, global_node_to_parent_node, global_node_to_leaves, global_leafpair_to_distance, curr_node_to_leaves, curr_wcl, cs)
 
@@ -261,7 +278,7 @@ if __name__ == '__main__':
             # remove cluster-size sensitivity-induced clusters
             if params.subsume_sensitivity_induced_clusters:
                 print ('Removing cluster-size sensitivity-induced clusters...')
-                curr_clusterlen_distribution = cleanup_object.get_cluster_size_distribution(curr_clusterid_to_taxa) # determine distribution of clusters
+                curr_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa) # determine distribution of clusters
                 curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_sensitivity_subsumed_taxa_to_clusterid = cleanup_object.subsume_subclusters_under_x_percentile(curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_clusterlen_distribution, params.sensitivity_percentile)
 
             # de-cluster outliers of descendent cluster that got clustered in ancestor cluster
@@ -273,22 +290,22 @@ if __name__ == '__main__':
             # further subsume any sub-clusters into parent clusters which taxa set include that of sub-clusters
             if params.subsume_subclusters:
                 print ('Subsume sub-clusters within parent...')
-                curr_clusterlen_distribution = cleanup_object.get_cluster_size_distribution(curr_clusterid_to_taxa) # get cluster size distribution
+                curr_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa) # get cluster size distribution
                 curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_nosub_taxa_to_clusterid = cleanup_object.subsume_subclusters_under_x_percentile(curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_clusterlen_distribution, 100)
 
             # get cluster size distribution
-            curr_clusterlen_distribution = cleanup_object.get_cluster_size_distribution(curr_clusterid_to_taxa)
+            curr_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa)
 
             # print outputs
-            print ('Writing outputs...')
-            output_obj = phyclip_output(global_tree_string, curr_taxon_to_clusterid, taxon_list, curr_sensitivity_subsumed_taxa_to_clusterid if params.subsume_sensitivity_induced_clusters else False, curr_nosub_taxa_to_clusterid if params.subsume_subclusters else False, curr_outfname)
+            print ('Writing outputs (post-clean-up)...')
+            output_obj = phyclip_output(global_tree_string, curr_taxon_to_clusterid, taxon_list, curr_outfname, 'post-clean', curr_sensitivity_subsumed_taxa_to_clusterid if params.subsume_sensitivity_induced_clusters else False, curr_nosub_taxa_to_clusterid if params.subsume_subclusters else False)
             # cluster file
             curr_modified_tree_string = output_obj.cluster_output()
             # figtree annotated tree file
             output_obj.figtree_output(curr_modified_tree_string)
 
             # append to summary stats output file
-            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index)
+            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean')
 
     print ('\n...All parameters sets analysed.\n')
 
