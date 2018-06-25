@@ -50,7 +50,7 @@ The easiest way to install Gurobi is via the Anaconda platform:
 
 4. You can now access https://user.gurobi.com/download/licenses/free-academic to request for a free academic license. 
 
-5. To install the license:  ```$ grbgetkey XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` where ```XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` is your unique license key stipulated in the License Detail webpage. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required for this step. 
+5. To install the license:  ```$ grbgetkey XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` where ```XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX``` is your unique license key shown in the License Detail webpage. Note that an active internet connection from a recognized academic domain (e.g. '.edu' addresss) is required for this step. 
 
 #### GLPK
 
