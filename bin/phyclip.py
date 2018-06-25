@@ -279,7 +279,7 @@ if __name__ == '__main__':
             # ! --- print pre-clean up results end --- !#
 
             print('\nCleaning up clusters...')
-            cleanup_object = clean_up_modules(curr_node_to_descendant_nodes, global_node_to_parent_node, global_node_to_leaves, global_leafpair_to_distance, curr_node_to_leaves, curr_wcl, cs)
+            cleanup_object = clean_up_modules(curr_node_to_descendant_nodes, global_node_to_leaves, global_leafpair_to_distance, curr_node_to_leaves, curr_wcl, cs)
 
             # ensure that the most descendant-possible node-id is subtending each cluster
             curr_clusterid_to_taxa, curr_taxon_to_clusterid = cleanup_object.most_desc_nodeid_for_cluster(curr_clusterid_to_taxa, curr_taxon_to_clusterid)

@@ -362,14 +362,13 @@ class node_leaves_reassociation(object):
 
 # clean-up modules
 class clean_up_modules(object):
-    def __init__(self, current_node_to_descendant_nodes=None, node_to_parent_node=None, node_to_leaves=None, leafpair_to_distance=None, current_node_to_leaves=None, within_cluster_limit=None, min_cluster_size=None):
+    def __init__(self, current_node_to_descendant_nodes=None, node_to_leaves=None, leafpair_to_distance=None, current_node_to_leaves=None, within_cluster_limit=None, min_cluster_size=None):
         self.current_node_to_descendant_nodes = current_node_to_descendant_nodes
         self.node_to_leaves = node_to_leaves
         self.leafpair_to_distance = leafpair_to_distance
         self.current_node_to_leaves = current_node_to_leaves
         self.within_cluster_limit = within_cluster_limit
         self.min_cluster_size = min_cluster_size
-        self.node_to_parent_node = node_to_parent_node
 
     def most_desc_nodeid_for_cluster(self, clusterid_to_taxa, taxon_to_clusterid):
         # clean up cluster id - must follow most descendant node
@@ -412,12 +411,20 @@ class clean_up_modules(object):
             except:
                 continue
 
+        cluster_to_anc_clusters  = {}
+        for cluster, desc_clusters in cluster_to_desc_clusters.items():
+            for desc in desc_clusters:
+                try:
+                    cluster_to_anc_clusters[desc].append(cluster)
+                except:
+                    cluster_to_anc_clusters[desc] = [cluster]
+
         # check nodes which are <= x-percentile and do not have any descending clusters
         for cluster in sorted(clusterid_to_taxa.keys()):
             taxa = clusterid_to_taxa[cluster]
             if len(taxa) <= clusterlen_cutoff and cluster not in cluster_to_desc_clusters:
                 try:
-                    parent_cluster = self.node_to_parent_node[cluster]
+                    parent_cluster = sorted(cluster_to_anc_clusters[cluster])[-1]
                     parent_taxa = clusterid_to_taxa[parent_cluster][:]
                 except:
                     continue
