@@ -34,11 +34,13 @@ $ pip install numpy scipy ete3 statsmodels
 ### Prerequisite: ILP solver 
 PhyCLIP currently supports two ILP solvers. You can choose either **_ONE_** to install depending on your access to these solvers: 
 
-1. **Gurobi** optimizer (http://www.gurobi.com/) is a commercial linear and quadratic programming solver with free licenses available for academic users.
+1. **Gurobi** optimizer (http://www.gurobi.com/) is a commercial linear and quadratic programming solver with FREE licenses available for academic users.
 2. **GLPK** (GNU Linear Programming Kit, https://www.gnu.org/software/glpk/) is a free and open-source package intended for solving large-scale linear programming, mixed integer programming, and other related problems.
 
+If you are a university user (i.e. you have internet access from a recognized academic domain, e.g. '.edu' addresss), we highly reccomend running PhyCLIP with the Gurobi solver. While GLPK is free under the GNU General Public License, it performs poorly in terms of both speed and solvability (GLPK version 4.65 solved only 2 of the 87 standard test-set mixed-integer programming models whereas Gurobi is the fastest solver for all 87 benchmark problems, see http://plato.asu.edu/ftp/milpc.html). 
+
 #### Gurobi
-If you are a university user (i.e. you have internet access from a recognized academic domain, e.g. '.edu' addresss), we highly reccomend running PhyCLIP with the Gurobi solver. The easiest way to install Gurobi is via the Anaconda platform:  
+The easiest way to install Gurobi is via the Anaconda platform:
 
 1. Make sure you have Anaconda for Python 2.7 installed (see above). 
 
@@ -52,10 +54,12 @@ If you are a university user (i.e. you have internet access from a recognized ac
 
 #### GLPK
 
-You can easily install both Pyomo and GLPK via Anaconda: 
+You can easily install GLPK via Anaconda as well: 
 ```
-$ conda install -c conda-forge pyomo glpk
+$ conda install -c conda-forge glpk
 ```
+
+Alternatively, you can also install GLPK from source, go to http://ftp.gnu.org/gnu/glpk/ and download the latest distribution of glpk as a tarball. You can find installation information in the documentation provided.
 
 
 ### Install PhyCLIP 
@@ -96,7 +100,7 @@ usage: phyclip.py [-h] -i INPUT_FILE [--treeinfo TREEINFO]
                   [--subsume_sensitivity_induced_clusters {0,1}]
                   [--sensitivity_percentile SENSITIVITY_PERCENTILE]
                   [--subsume_subclusters {0,1}] [--solver {glpk,gurobi}]
-                  [--ilp_verbose {0,1}]
+                  [--solver_verbose {0,1}] [--solver_check]
 
 Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1
 
@@ -135,7 +139,9 @@ optional arguments:
   --solver {glpk,gurobi}
                         Preferred ILP solver IF more than one solvers are
                         available (default: gurobi).
-  --ilp_verbose {0,1}   ILP solver verbose (default: 0)
+  --solver_verbose {0,1}
+                        ILP solver verbose (default: 0)
+  --solver_check        Check available ILP solver(s) installed.
 
 ```
 
