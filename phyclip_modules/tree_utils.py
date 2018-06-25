@@ -262,7 +262,7 @@ class node_leaves_reassociation(object):
                     sd_node_to_leaves[node] = leaves_to_keep[:]
 
                     # check that there are no outlying leaves by distance to node
-                    rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes[node], sd_node_to_leaves)
+                    rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes, sd_node_to_leaves)
 
                     # no outlying leaves
                     if rol_output == False:
@@ -297,7 +297,7 @@ class node_leaves_reassociation(object):
                 sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
 
                 # now check that there are no outlying leaves by distance to node
-                rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes[node], sd_node_to_leaves)
+                rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes, sd_node_to_leaves)
                 # no outlying leaves
                 if rol_output == False:
                     # update mean_pwdist from leave-one-out-wcl output
@@ -343,7 +343,7 @@ class node_leaves_reassociation(object):
                     sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
 
                     # check that there are no outlying leaves by distance to node
-                    rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes[node], sd_node_to_leaves)
+                    rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes, sd_node_to_leaves)
                     # no outlying leaves
                     if rol_output == False:
                         # this mean_pwdist is from loo_output
@@ -422,25 +422,13 @@ class clean_up_modules(object):
             except:
                 continue
 
-        """
-        cluster_to_anc_clusters  = {}
-        for cluster, desc_clusters in cluster_to_desc_clusters.items():
-            for desc in desc_clusters:
-                try:
-                    cluster_to_anc_clusters[desc].append(cluster)
-                except:
-                    cluster_to_anc_clusters[desc] = [cluster]
-        """
-
         # check nodes which are <= x-percentile and do not have any descending clusters
         for cluster in sorted(clusterid_to_taxa.keys()):
             taxa = clusterid_to_taxa[cluster]
             if len(taxa) <= clusterlen_cutoff and cluster not in cluster_to_desc_clusters:
                 try:
-                    #parent_cluster = sorted(cluster_to_anc_clusters[cluster])[-1]
-                    #parent_taxa = clusterid_to_taxa[parent_cluster][:]
-                    parent_node = self.node_to_parent_node[cluster]
-                    parent_taxa = clusterid_to_taxa[parent_node][:]
+                    parent_cluster = self.node_to_parent_node[cluster]
+                    parent_taxa = clusterid_to_taxa[parent_cluster][:]
                 except:
                     continue
 
