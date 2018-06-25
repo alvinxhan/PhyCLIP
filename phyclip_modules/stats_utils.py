@@ -262,7 +262,7 @@ def get_cluster_size_distribution(clusterid_to_taxa):
 
     return [i for j in [[clusterlen] * frequency for clusterlen, frequency in clusterlen_to_frequency.items()] for i in j]
 
-def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status):
+def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status):
     """
     Summary stats of within- and inter-clade divergence
     """
@@ -316,8 +316,8 @@ def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepai
                    np.mean(mean_dist), sd_mean_dist, np.mean(median_dist), sd_median_dist, min(mean_dist), max(mean_dist),
                    np.mean(intercluster_dist), sd_intercluster_dist, median_intercluster, mad_intercluster, min(intercluster_dist), max(intercluster_dist)]
 
-        output.write('{}\t{}\t{}\t'
+        output.write('{}\t{}\t{}\t{}\t'
                      '{}\t{}\t{}\t{}\t{}\t{}\t'
-                     '{}\n'.format(min_cluster_size, fdr_cutoff, gamma,
+                     '{}\n'.format(treefname, min_cluster_size, fdr_cutoff, gamma,
                                    hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status,
                                    '\t'.join(map(str, results))))

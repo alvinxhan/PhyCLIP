@@ -3,6 +3,7 @@
 from __future__ import division, print_function
 import ete3
 import re
+import os
 import itertools
 import numpy as np
 
@@ -65,12 +66,25 @@ if __name__ == '__main__':
     treefname = re.sub('([^/]+/|\.[^.]+$)', '', treepath)
     inputfname = re.sub('([^/]+/|\.[^.]+$)', '', params.input_file)
 
+    # parse newick tree file
     try:
         newick_tree_string = parse_newick_tree(treepath)
         tree = ete3.Tree(newick_tree_string, format=5)
         print ('\nTree file...OK')
     except:
         raise SystemExit('\nERROR: Invalid tree file. Check that the correct path to the NEWICK tree file is given in the first line of the input file.\n')
+
+    tree.ladderize() # ladderize tree
+
+    # collapse zero branch length
+    if params.collapse_zero_branch_lengths == 1:
+        from phyclip_modules.tree_utils import collapse_zero_branch_lengths
+        tree = collapse_zero_branch_lengths(tree, params.equivalent_zero_length)
+
+        # write zero branch length collapsed tree as a newick file
+        treefname = 'zero-branch-length-collapsed_{}.nwk'.format(treefname)
+        tree.write(format=5, outfile=treefname)
+        print ('Collapsed newick tree file...{}'.format(treefname))
 
     # subsequent lines are parameters (cs, fdr, gam)
     parameters = []
@@ -86,21 +100,26 @@ if __name__ == '__main__':
     if params.solver not in available_solvers:
         print ('\nWARNING: {} is not installed.'.format(params.solver))
         params.solver = available_solvers[0]
-
     print('\nILP solver...{}'.format(params.solver))
 
-    # ladderize tree
-    tree.ladderize()
+    # check if summary stats file already exist in current working directory
+    statsfname = 'summary-stats_{}.txt'.format(inputfname)
+    if statsfname in os.listdir(os.getcwd()):
+        try:
+            overwrite_statsfile = re.search('(y|n)', raw_input('\nWARNING: {} exists in current working directory. Overwrite? (y/n): '.format(statsfname))).group()
+        except:
+            raise SystemExit('\nERROR: Invalid input.\n')
+    else:
+        overwrite_statsfile = 'y'
 
-    # collapse zero branch length
-    if params.collapse_zero_branch_lengths == 1:
-        from phyclip_modules.tree_utils import collapse_zero_branch_lengths
-        tree = collapse_zero_branch_lengths(tree, params.equivalent_zero_length)
-
-        # write zero branch length collapsed tree as a newick file
-        treefname = 'zero-branch-length-collapsed_{}.nwk'.format(treefname)
-        tree.write(format=5, outfile=treefname)
-        print ('\nCollapsed newick tree file...{}'.format(treefname))
+    # write header of summary stats output
+    if overwrite_statsfile == 'y':
+        with open(statsfname, 'w') as output:
+            output.write('Treefile\tCS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tClean_up\t'
+                         '#_of_clustered_sequences\tTotal_no_of_sequences\t%\t#_of_clusters\t'
+                         'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
+                         'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
+                         'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
 
     # --- GLOBAL TREE INFORMATION --- #
     print ('\nGetting tree information...')
@@ -120,7 +139,6 @@ if __name__ == '__main__':
     else:
         params.treeinfo = '{}_treeinfo.txt'.format(treefname)
 
-        import os
         if params.treeinfo in os.listdir(os.getcwd()):
             try:
                 overwrite_treeinfo = re.search('(y|n)', raw_input('\nWARNING: {} exists in current working directory. Overwrite? (y/n): '.format(params.treeinfo))).group()
@@ -151,15 +169,6 @@ if __name__ == '__main__':
         mad_x = np.median([x-med_x for x in global_node_to_mean_pwdist.values() if x >= med_x])
 
     ### --- GLOBAL TREE INFORMATION --- ###
-
-    # Header of final summary stats output
-    statsfname = 'summary-stats_{}.txt'.format(inputfname)
-    with open(statsfname, 'w') as output:
-        output.write('CS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tClean_up\t'
-                     '#_of_clustered_sequences\tTotal_no_of_sequences\t%\t#_of_clusters\t'
-                     'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
-                     'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
-                     'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
 
     csgam_to_reassociation_memory = {} # memory of reassociated nodes/leaves for repeated (cs, gam) set
 
@@ -235,7 +244,7 @@ if __name__ == '__main__':
         if all_solutions == 'na':
             # continue to next parameter set if no solution
             with open(statsfname, 'a') as output:
-                output.write('{}\t{}\t{}\tNO OPTIMAL SOLUTION FOUND.\n'.format(cs, fdr, gam))
+                output.write('{}\t{}\t{}\t{}\tNO OPTIMAL SOLUTION FOUND.\n'.format(treefname, cs, fdr, gam))
                 print ('\nNO OPTIMAL SOLUTION FOUND.')
             continue # continue to next parameter set
 
@@ -244,7 +253,7 @@ if __name__ == '__main__':
 
         # analyse solution and print outputs
         for sol_index, curr_taxon_to_clusterid in enumerate(all_solutions):
-            curr_outfname = '{}_{}_cs{}_fdr{}_gam{}_sol{}_{}'.format(params.gam_method.lower(), params.hypo_test.lower(), str(cs), str(fdr), str(gam), sol_index, inputfname)
+            curr_outfname = '{}_{}_cs{}_fdr{}_gam{}_sol{}_{}'.format(params.gam_method.lower(), params.hypo_test.lower(), str(cs), str(fdr), str(gam), sol_index, treefname)
             curr_clusterid_to_taxa = {}
             for taxon, clusterid in curr_taxon_to_clusterid.items():
                 try:
@@ -265,7 +274,7 @@ if __name__ == '__main__':
             # get clusterlen distribution
             pre_clean_up_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa)
 
-            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, pre_clean_up_clusterlen_distribution, statsfname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'pre-clean')
+            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, pre_clean_up_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'pre-clean')
 
             # ! --- print pre-clean up results end --- !#
 
@@ -277,7 +286,6 @@ if __name__ == '__main__':
 
             # remove cluster-size sensitivity-induced clusters
             if params.subsume_sensitivity_induced_clusters:
-                print ('Removing cluster-size sensitivity-induced clusters...')
                 curr_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa) # determine distribution of clusters
                 curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_sensitivity_subsumed_taxa_to_clusterid = cleanup_object.subsume_subclusters_under_x_percentile(curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_clusterlen_distribution, params.sensitivity_percentile)
 
@@ -305,7 +313,7 @@ if __name__ == '__main__':
             output_obj.figtree_output(curr_modified_tree_string)
 
             # append to summary stats output file
-            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean')
+            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean')
 
     print ('\n...All parameters sets analysed.\n')
 

@@ -400,7 +400,7 @@ class clean_up_modules(object):
         # regard any clusters of length <= 25 (default) percentile lacking evidence to be a potential trajectory
         clusterlen_cutoff = np.percentile(clusterlen_distribution, percentile)
         if percentile < 100:
-            print ('Subsuming clusters <= {} taxa...'.format(int(clusterlen_cutoff)))
+            print ('Subsuming cluster-size sensitivity-induced clusters <= {} taxa...'.format(int(clusterlen_cutoff)))
 
         # determine ancestry of clusters
         cluster_to_desc_clusters = {}
