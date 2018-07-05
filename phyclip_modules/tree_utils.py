@@ -220,7 +220,7 @@ class node_leaves_reassociation(object):
                     sd_node_to_mean_pwdist[node] = mean_pwdist
                 continue
 
-            # current > self.within_cluster_limit
+            # current node > self.within_cluster_limit
             descendant_nodes_to_dissociate = []  # list to save nodes for dissociation
             try:
                 # descendants nodes are already sorted by mean child-nodes' distance to node
@@ -235,7 +235,7 @@ class node_leaves_reassociation(object):
                             descendant_nodes_to_dissociate = list(set(descendant_nodes_to_dissociate)|set(self.node_to_descendant_nodes[desc_node]))
                         except:
                             pass
-                # code con't below...
+                # !--- code con't below
             except:
                 # dead-end node with no descendants but > self.within_cluster_limit
                 loo_output = self.leave_one_out_leaf_reduction(self.node_to_leaves[node], node)
@@ -278,7 +278,7 @@ class node_leaves_reassociation(object):
 
                 continue
 
-            # ...resumed code from above
+            # code resumed from above ---!#
             leaves_to_remove = list(set([x for y in [self.node_to_leaves[desc_node] for desc_node in descendant_nodes_to_dissociate] for x in y]))
             # remove all leaves from nodes that could be potentially dissociated (leaves in self.node_to_leaves[node] already reverse-sorted by distance to node)
             remaining_leaves = [leaf for leaf in self.node_to_leaves[node] if leaf not in leaves_to_remove]

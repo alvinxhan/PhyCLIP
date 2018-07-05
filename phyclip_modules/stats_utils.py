@@ -262,7 +262,7 @@ def get_cluster_size_distribution(clusterid_to_taxa):
 
     return [i for j in [[clusterlen] * frequency for clusterlen, frequency in clusterlen_to_frequency.items()] for i in j]
 
-def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status):
+def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status, pc_input):
     """
     Summary stats of within- and inter-clade divergence
     """
@@ -318,6 +318,14 @@ def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepai
 
         output.write('{}\t{}\t{}\t{}\t'
                      '{}\t{}\t{}\t{}\t{}\t{}\t'
-                     '{}\n'.format(treefname, min_cluster_size, fdr_cutoff, gamma,
-                                   hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status,
-                                   '\t'.join(map(str, results))))
+                     .format(treefname, min_cluster_size, fdr_cutoff, gamma,
+                             hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status))
+
+        if pc_input == False:
+            output.write('na\t')
+        else:
+            prior_taxa = [i for j in pc_input.values() for i in j]
+            clustered_taxa = [i for j in clusterid_to_taxa.values() for i in j]
+            output.write('{}\t'.format(len(set(prior_taxa)&set(clustered_taxa))/len(prior_taxa)))
+
+        output.write('{}\n'.format('\t'.join(map(str, results))))

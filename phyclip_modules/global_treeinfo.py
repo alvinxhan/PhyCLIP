@@ -39,7 +39,6 @@ class get_global_tree_info(object):
         '''
 
         tree_string = self.tree_object.write(format=5)  # append node id annotation
-        taxon_list = self.tree_object.get_leaf_names()
 
         node_to_leaves = {}
         nindex_to_node = {}
@@ -139,7 +138,7 @@ class get_global_tree_info(object):
         # get mean distance of children nodes of each node to root
         node_to_mean_child_dist2root = {n:np.mean([self.leaf_dist_to_node[child.name][0] if child.is_leaf() else nodepair_to_dist[node_to_nindex[child]][0] for child in nindex_to_node[n].get_children()]) for n in node_to_leaves.keys()}
 
-        return tree_string, taxon_list, node_to_leaves, nindex_to_node, node_to_nindex, self.leaf_dist_to_node, nodepair_to_dist, node_to_parent_node, node_to_mean_child_dist2root
+        return tree_string, node_to_leaves, nindex_to_node, node_to_nindex, self.leaf_dist_to_node, nodepair_to_dist, node_to_parent_node, node_to_mean_child_dist2root
 
     def pwdist_dist_and_ancestral_trace(self, all_taxa_len, node_to_leaves, nindex_to_node, node_to_nindex, node_to_mean_child_dist2root, nodepair_to_dist):
         '''
