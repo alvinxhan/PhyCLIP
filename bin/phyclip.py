@@ -150,6 +150,7 @@ if __name__ == '__main__':
         print('Prior file...OK')
     else:
         prior_input = False
+        prior_weights = False
 
     # preferred solver
     if params.solver not in available_solvers:
