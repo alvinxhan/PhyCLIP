@@ -292,10 +292,10 @@ if __name__ == '__main__':
         # Build ILP model and solve
         if params.solver == 'gurobi':
             from phyclip_modules.gurobi_solver import gurobi_solver
-            try:
-                all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose)
-            except:
-                raise SystemExit('\nERROR: Unable to solve ILP model using gurobi. You may try to use other available solvers by the --solver flag.\n')
+            #try:
+            all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose)
+            #except:
+            #raise SystemExit('\nERROR: Unable to solve ILP model using gurobi. You may try to use other available solvers by the --solver flag.\n')
         else:
             from phyclip_modules.glpk_solver import glpk_solver
             try:
