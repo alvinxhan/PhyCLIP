@@ -1,7 +1,7 @@
 from gurobipy import *
 import itertools
 
-def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_to_qval, node_to_mean_pwdist, within_cluster_limit, min_cluster_size, fdr_cutoff, prior, verbose):
+def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_to_qval, node_to_mean_pwdist, within_cluster_limit, min_cluster_size, fdr_cutoff, prior, pc_weights, verbose):
     print ('Solving with gurobi...')
 
     # set up indices
@@ -98,10 +98,6 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
 
                 model.addConstr(quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) >= 1 - 9999*z[(p, n)])
 
-                # if node subtends all leaves in prior cluster
-                #model.addConstr(prior_taxa_clustered[p] >= quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended))
-                #model.addConstr(prior_taxa_clustered[p] <= quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) + len(all_leaves)*(1-z[(p, n)]))
-
             model.addConstr(quicksum(z[(p, n)] for n in node_to_prior_leaves.keys()) >= 1 - 9999*(1 - q[p]))
             model.addConstr(quicksum(z[(p, n)] for n in node_to_prior_leaves.keys()) <= 9999*q[p])
 
@@ -110,14 +106,12 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
                 model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) >= -9999*(1 - q[p]))
                 model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) <= (2 - q[p] - z[(p,n)])*9999)
 
-
-
     # objective function - maximize number of strains clustered
     model.ModelSense = GRB.MAXIMIZE
     if prior:
         model.NumObj = 2
         model.setObjectiveN(quicksum(leaf_decision[(leaf, n)] for (leaf, n) in leaf_binary_indices), index=0, priority=1, name='primary')
-        model.setObjectiveN(quicksum(prior_taxa_clustered[p] for p in p_to_nodes_to_prior_leaves.keys()), index=1, priority=0, name='prior')
+        model.setObjectiveN(quicksum(pc_weights[p]*prior_taxa_clustered[p] for p in p_to_nodes_to_prior_leaves.keys()), index=1, priority=0, name='prior')
     else:
         model.setObjective(quicksum(leaf_decision[(leaf, n)] for (leaf, n) in leaf_binary_indices))
 

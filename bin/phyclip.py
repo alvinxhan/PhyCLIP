@@ -18,7 +18,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1')
     parser.add_argument('-i', '--input_file', required=True, type=str, help='Input file. See manual for format details.')
     parser.add_argument('--treeinfo', type=str, help='Tree information file generated from previous PhyCLIP run.')
-    parser.add_argument('--prior', type=str, help='Prior information on clustered taxa. File format same as PhyCLIP cluster text file output (i.e. CLUSTER{tab}TAXON). Only works with gurobi solver, no support for glpk.')
+    parser.add_argument('--prior', type=str, help='Prior information on clustered taxa. File format same as PhyCLIP cluster text file output (i.e. CLUSTER-ID{tab}TAXON). Only works with gurobi solver, no support for glpk.')
+    parser.add_argument('--prior_weights', type=str, help='Weights on importance/confidence between prior clusters to remain clustered together. File format: CLUSTER-ID{tab}INT/FLOAT_WEIGHT{\\newline}. Equal weights will be assumed if none is given.')
     parser.add_argument('--pdf_tree', action='store_true', help='PDF tree output annotated with cluster results.')
     parser.add_argument('--collapse_zero_branch_lengths', default=0, choices=[0, 1], type=int, help='Collapse nodes with zero branch lengths of tree prior to running PhyCLIP (default = %(default)s).')
     parser.add_argument('--equivalent_zero_length', default=0.0000001, type=float, help='Maximum branch length to be rounded to zero if the --collapse_zero_branch_lengths flag is passed (advanced option, default = %(default)s).')
@@ -110,7 +111,7 @@ if __name__ == '__main__':
             try:
                 clusterid, taxon = line.split('\t')[:2]
             except:
-                raise SystemExit('\nERROR: Invalid prior file given. Check manual for details on correct file format.\n')
+                raise SystemExit('\nERROR: Invalid prior file given. Check manual or type --help for details on correct file format.\n')
 
             if clusterid == 'CLUSTER' and taxon == 'TAXA':
                 continue
@@ -125,6 +126,26 @@ if __name__ == '__main__':
         taxa_in_prior_not_present_in_tree = list(set([i for j in prior_input.values() for i in j]) - set(taxon_list))
         if len(taxa_in_prior_not_present_in_tree) > 0:
             raise SystemExit('\nERROR: Some taxa in prior file are not present in tree - {}.\n'.format(', '.join(taxa_in_prior_not_present_in_tree)))
+
+        # prior weights
+        if params.prior_weights:
+            prfhandle = filter(None, [_.strip() for _ in open(params.prior, 'rU')])
+
+            prior_weights = {}
+            for line in prfhandle:
+                try:
+                    clusterid, weight = line.split('\t')
+                except:
+                    raise SystemExit('\nERROR: Invalid prior weights file given. Check manual or type --help for details on correct file format.\n')
+
+                if clusterid in prior_input:
+                    prior_weights[clusterid] = float(weight)
+                else:
+                    raise SystemExit('\nERROR: CLUSTER-ID {} in prior weights file was not found in prior file.\n'.format(clusterid))
+
+            prior_weights = {clusterid:weight/(sum(prior_weights.values())) for clusterid, weight in prior_weights.items()}
+        else:
+            prior_weights = {clusterid:1/len(taxa) for clusterid, taxa in prior_input.items()}
 
         print('Prior file...OK')
     else:
@@ -272,7 +293,7 @@ if __name__ == '__main__':
         if params.solver == 'gurobi':
             from phyclip_modules.gurobi_solver import gurobi_solver
             try:
-                all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, params.solver_verbose)
+                all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose)
             except:
                 raise SystemExit('\nERROR: Unable to solve ILP model using gurobi. You may try to use other available solvers by the --solver flag.\n')
         else:
