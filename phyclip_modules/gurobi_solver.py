@@ -52,8 +52,6 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
         y = model.addVars([(p, yi, yj) for p, nodeij_pairs in p_to_nodeij_permutations.items() for (yi, yj) in nodeij_pairs], vtype=GRB.BINARY)
         # binary denoting 1 if sum_j(y[i,j]) == 0 (i.e. nodes with largest counts of prior taxa clustered)
         z = model.addVars([(p, n) for p, node_to_prior_leaves in p_to_nodes_to_prior_leaves.items() for n in node_to_prior_leaves.keys()], vtype=GRB.BINARY)
-        # binary denoting 1 if sum_i(z[i]) > 0 (i.e. there ARE nodes with largest counts of prior taxa clustered)
-        q = model.addVars(p_to_nodes_to_prior_leaves.keys(), vtype=GRB.BINARY)
 
     # constraints
     # leaf binary should be related to node binary
@@ -98,13 +96,10 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
 
                 model.addConstr(quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) >= 1 - 9999*z[(p, n)])
 
-            model.addConstr(quicksum(z[(p, n)] for n in node_to_prior_leaves.keys()) >= 1 - 9999*(1 - q[p]))
-            model.addConstr(quicksum(z[(p, n)] for n in node_to_prior_leaves.keys()) <= 9999*q[p])
-
-            model.addConstr(prior_taxa_clustered[p] <= 9999*q[p])
+            model.addConstr(prior_taxa_clustered[p] <= 9999*quicksum(z[(p,n)] for n in node_to_prior_leaves.keys()))
             for n, prior_leaves_subtended in node_to_prior_leaves.items():
-                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) >= -9999*(1 - q[p]))
-                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) <= (2 - q[p] - z[(p,n)])*9999)
+                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) >= -9999*(1 - z[(p,n)]))
+                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) <= 9999*(1 - z[(p,n)]))
 
     # objective function - maximize number of strains clustered
     model.ModelSense = GRB.MAXIMIZE
