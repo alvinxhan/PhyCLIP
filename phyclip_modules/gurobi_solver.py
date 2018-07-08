@@ -53,6 +53,9 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
         # binary denoting 1 if sum_j(y[i,j]) == 0 (i.e. nodes with largest counts of prior taxa clustered)
         z = model.addVars([(p, n) for p, node_to_prior_leaves in p_to_nodes_to_prior_leaves.items() for n in node_to_prior_leaves.keys()], vtype=GRB.BINARY)
 
+    # update model
+    model.update()
+
     # constraints
     # leaf binary should be related to node binary
     model.addConstrs(leaf_decision[(leaf,n)] <= node_decision[n] for (leaf, n) in leaf_binary_indices)
@@ -68,16 +71,15 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
             else:
                 model.addConstr(leaf_decision[(leaf, m)] <= 2 - node_decision[m] - node_decision[n])
 
-    # cluster size constraint
-    model.addConstrs(len(all_leaves)*(node_decision[n]-1) + min_cluster_size <= quicksum(leaf_decision[(leaf, n)] for leaf in node_to_leaves[n]) for n in list_of_ancestral_node)
-
     # inter-cluster constraint
     for (n, m) in itertools.combinations(list_of_ancestral_node, 2):
-        model.addConstr((2 - node_decision[n] - node_decision[m])*9999 >= nodepair_to_qval[(n,m)]-fdr_cutoff)
+        model.addConstr((2 - node_decision[n] - node_decision[m])*999 >= nodepair_to_qval[(n,m)]-fdr_cutoff)
 
-    # within-cluster constraint
     for n in list_of_ancestral_node:
-        model.addConstr(9999*(node_decision[n]-1) <= within_cluster_limit - node_to_mean_pwdist[n])
+        # cluster size constraint
+        model.addConstr(len(all_leaves)*(node_decision[n]-1) + min_cluster_size <= quicksum(leaf_decision[(leaf, n)] for leaf in node_to_leaves[n]))
+        # within-cluster constraint
+        model.addConstr(999*(node_decision[n]-1) <= within_cluster_limit - node_to_mean_pwdist[n])
 
     # prior
     if prior:
@@ -87,19 +89,22 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
 
             for (yi, yj) in nodeij_permutations:
                 
-                model.addConstr(quicksum(leaf_decision[(leaf, yi)] for leaf in node_to_prior_leaves[yi]) >= quicksum(leaf_decision[(leaf, yj)] for leaf in node_to_prior_leaves[yj]) - 9999*y[(p, yi, yj)])
+                model.addConstr(quicksum(leaf_decision[(leaf, yi)] for leaf in node_to_prior_leaves[yi]) >= quicksum(leaf_decision[(leaf, yj)] for leaf in node_to_prior_leaves[yj]) - len(prior[p])*y[(p, yi, yj)])
 
-                model.addConstr(quicksum(leaf_decision[(leaf, yj)] for leaf in node_to_prior_leaves[yj]) >= quicksum(leaf_decision[(leaf, yi)] for leaf in node_to_prior_leaves[yi]) + 1 - 9999*(1-y[(p, yi, yj)]))
+                model.addConstr(quicksum(leaf_decision[(leaf, yj)] for leaf in node_to_prior_leaves[yj]) >= quicksum(leaf_decision[(leaf, yi)] for leaf in node_to_prior_leaves[yi]) + 1 - len(prior[p])*(1-y[(p, yi, yj)]))
 
             for n, prior_leaves_subtended in node_to_prior_leaves.items():
-                model.addConstr(quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) <= 9999*(1-z[(p, n)]))
+                model.addConstr(quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) <= (999+len(node_to_prior_leaves))*(1-z[(p, n)]))
 
-                model.addConstr(quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) >= 1 - 9999*z[(p, n)])
+                model.addConstr(quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) >= 1 - (999+len(node_to_prior_leaves))*z[(p, n)])
 
-            model.addConstr(prior_taxa_clustered[p] <= 9999*quicksum(z[(p,n)] for n in node_to_prior_leaves.keys()))
+            model.addConstr(prior_taxa_clustered[p] <= len(prior[p])*quicksum(z[(p,n)] for n in node_to_prior_leaves.keys()))
             for n, prior_leaves_subtended in node_to_prior_leaves.items():
-                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) >= -9999*(1 - z[(p,n)]))
-                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) <= 9999*(1 - z[(p,n)]))
+                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) >= (999+len(prior[p]))*(z[(p,n)] -1 ))
+                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) <= (999+len(prior[p]))*(1 - z[(p,n)]))
+
+    # update model
+    model.update()
 
     # objective function - maximize number of strains clustered
     model.ModelSense = GRB.MAXIMIZE
@@ -119,6 +124,9 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
     if model.status == GRB.Status.OPTIMAL:
         optimal_solutions = []
 
+        # query optimal solution objective
+        optsol_obj = model.getAttr('PoolObjVal')
+
         # get solution pool size
         solution_pool_size = model.getAttr('SolCount')
 
@@ -126,29 +134,28 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
 
             # get solution
             model.params.solutionNumber = sol_index
-            primaryobj_solution = model.getAttr('Xn', leaf_decision)
-            taxon_to_clusterid = {leaf:n for (leaf, n) in leaf_binary_indices if primaryobj_solution[(leaf, n)] == 1}
+            curr_sol_obj = model.getAttr('PoolObjVal')
 
-            # prior clusters
-            if prior:
-                p_to_leaves_clustered = model.getAttr('Xn', prior_taxa_clustered)
+            if curr_sol_obj == optsol_obj:
+                primaryobj_solution = model.getAttr('Xn', leaf_decision)
 
-            # 1st solution is the optimal solution
-            if sol_index == 0:
+                # prior clusters
                 if prior:
-                    optsol_obj = sum(p_to_leaves_clustered.values())
-                else:
-                    optsol_obj = len(taxon_to_clusterid)
-            # check if there are multiple optimal solutions
-            else:
-                if prior:
-                    if sum(p_to_leaves_clustered.values()) < optsol_obj:
-                        break
-                else:
-                    if len(taxon_to_clusterid) < optsol_obj:
+                    p_to_leaves_clustered = model.getAttr('Xn', prior_taxa_clustered)
+                    curr_prior_obj = sum([pc_weights[p]*p_to_leaves_clustered[p] for p in p_to_leaves_clustered.keys()])
+                    if sol_index == 0:
+                        prior_opt_sol_obj = curr_prior_obj
+                    elif curr_prior_obj < prior_opt_sol_obj:
                         break
 
-            optimal_solutions.append(taxon_to_clusterid)
+                taxon_to_clusterid = {leaf:n for (leaf, n) in leaf_binary_indices if primaryobj_solution[(leaf, n)] == 1}
+                """
+                try:
+                    print taxon_to_clusterid['h5n1/a/chicken/east_java/ut6021/2006_CLADE2_1_3_1']
+                except:
+                    pass
+                """
+                optimal_solutions.append(taxon_to_clusterid)
 
         return optimal_solutions
     else:
