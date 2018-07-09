@@ -260,20 +260,18 @@ if __name__ == '__main__':
 
             curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = nla_object.nla_main()
 
+            for node, leaves in curr_node_to_leaves.items():
+                # filter by cs
+                if len(leaves) < cs:
+                    del curr_node_to_leaves[node]
+                    continue
+
             # save to memory to speed up subsequent runs with the same cs/gam parameter set
             csgam_to_reassociation_memory[(cs, gam)] = [curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist]
 
         # update pairwise distance dictionaries/nodes' ancestry relations
         print ('Updating tree info...')
-        curr_leaves = []
-        for node, leaves in curr_node_to_leaves.items():
-            # filter by cs
-            if len(leaves) < cs:
-                del curr_node_to_leaves[node]
-                continue
-
-            curr_leaves = list(set(curr_leaves)|set(leaves))
-
+        curr_leaves = [x for y in curr_node_to_leaves.values() for x in y]
         curr_list_of_ancestral_node = curr_node_to_leaves.keys()[:]
         curr_node_to_descendant_nodes = {k:list(set(v)&set(curr_list_of_ancestral_node)) for k,v in curr_node_to_descendant_nodes.items() if k in curr_list_of_ancestral_node and len(v) > 0}
 
@@ -292,7 +290,11 @@ if __name__ == '__main__':
 
         # Build ILP model and solve
         if params.solver == 'gurobi':
-            from phyclip_modules.gurobi_solver import gurobi_solver
+            #from phyclip_modules.gurobi_solver import gurobi_solver
+            import sys
+            sys.path.append('/home/alvin/Dropbox/PhyCLIP_ghmaster/phyclip_modules/')
+            from gurobi_solver import gurobi_solver
+
             #try:
             all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose)
             #except:
@@ -328,6 +330,7 @@ if __name__ == '__main__':
 
             print ('Writing outputs (pre-clean-up)...')
             pre_clean_up_output_obj = phyclip_output(original_tree_string, global_tree_string, curr_taxon_to_clusterid, curr_clusterid_to_taxa, taxon_list, curr_outfname, 'pre-clean')
+
             # cluster file
             pre_clean_up_modified_tree_string = pre_clean_up_output_obj.cluster_output()
             # figtree annotated tree file

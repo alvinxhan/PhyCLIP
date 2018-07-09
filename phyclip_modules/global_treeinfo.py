@@ -85,6 +85,7 @@ class get_global_tree_info(object):
             node_to_leaves[n] = sorted(node.get_leaf_names(), key=lambda leaf: self.leaf_dist_to_node[leaf][n], reverse=True)
 
         # calculate inter-node distances using leaf_dist_to_node
+        print ('Get inter-node distances...')
         ancestral_nodepair_to_dist = {}
         for leaf, node_to_dist in self.leaf_dist_to_node.items():
             ancestors_of_leaf = node_to_dist.keys()[:]
@@ -148,7 +149,7 @@ class get_global_tree_info(object):
         4) Get leaf to ancestor trace
         5) Get mean child-nodes distance to ancestral trace
         '''
-        if len(self.leafpair_to_distance) < nCr(all_taxa_len, 2):
+        if len(self.leafpair_to_distance) < 2*nCr(all_taxa_len, 2):
             print ('Parsing all pairwise distances between leaves...')
             for x, y in itertools.combinations(self.tree_object.get_leaves(), 2):
                 leaf_x = x.name
@@ -207,7 +208,7 @@ class get_global_tree_info(object):
         '''
         Perform all inter-clusters' hypotheses tests
         '''
-        if len(self.nodepair_to_pval) < nCr(no_of_internal_nodes, 2):
+        if len(self.nodepair_to_pval) < 2*nCr(no_of_internal_nodes, 2):
             from phyclip_modules import inter_cluster_hytest
 
             print ('Performing {} tests...'.format(hytest_method))

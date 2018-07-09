@@ -88,20 +88,21 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
             node_to_prior_leaves = p_to_nodes_to_prior_leaves[p]
 
             for (yi, yj) in nodeij_permutations:
-                
-                model.addConstr(quicksum(leaf_decision[(leaf, yi)] for leaf in node_to_prior_leaves[yi]) >= quicksum(leaf_decision[(leaf, yj)] for leaf in node_to_prior_leaves[yj]) - len(prior[p])*y[(p, yi, yj)])
+                model.addConstr(quicksum(leaf_decision[(leaf, yi)] for leaf in node_to_prior_leaves[yi]) >= quicksum(leaf_decision[(leaf, yj)] for leaf in node_to_prior_leaves[yj]) - 9999*y[(p, yi, yj)])
 
-                model.addConstr(quicksum(leaf_decision[(leaf, yj)] for leaf in node_to_prior_leaves[yj]) >= quicksum(leaf_decision[(leaf, yi)] for leaf in node_to_prior_leaves[yi]) + 1 - len(prior[p])*(1-y[(p, yi, yj)]))
+                model.addConstr(quicksum(leaf_decision[(leaf, yj)] for leaf in node_to_prior_leaves[yj]) >= quicksum(leaf_decision[(leaf, yi)] for leaf in node_to_prior_leaves[yi]) + 1 - 9999*(1 - y[(p, yi, yj)]))
 
             for n, prior_leaves_subtended in node_to_prior_leaves.items():
-                model.addConstr(quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) <= (999+len(node_to_prior_leaves))*(1-z[(p, n)]))
+                model.addConstr(
+                    quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) <= 9999*(1-z[(p, n)]))
 
-                model.addConstr(quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) >= 1 - (999+len(node_to_prior_leaves))*z[(p, n)])
+                model.addConstr(
+                    quicksum(y[(p, n, m)] for m in node_to_prior_leaves.keys() if n != m) >= 1 - 9999*z[(p, n)])
 
-            model.addConstr(prior_taxa_clustered[p] <= len(prior[p])*quicksum(z[(p,n)] for n in node_to_prior_leaves.keys()))
+            model.addConstr(prior_taxa_clustered[p] <= 9999*quicksum(z[(p, n)] for n in node_to_prior_leaves.keys()))
             for n, prior_leaves_subtended in node_to_prior_leaves.items():
-                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) >= (999+len(prior[p]))*(z[(p,n)] -1 ))
-                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) <= (999+len(prior[p]))*(1 - z[(p,n)]))
+                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) >= 9999*(z[(p, n)]-1))
+                model.addConstr(prior_taxa_clustered[p] - quicksum(leaf_decision[(leaf, n)] for leaf in prior_leaves_subtended) <= 9999*(1-z[(p, n)]))
 
     # update model
     model.update()
@@ -148,13 +149,8 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
                     elif curr_prior_obj < prior_opt_sol_obj:
                         break
 
-                taxon_to_clusterid = {leaf:n for (leaf, n) in leaf_binary_indices if primaryobj_solution[(leaf, n)] == 1}
-                """
-                try:
-                    print taxon_to_clusterid['h5n1/a/chicken/east_java/ut6021/2006_CLADE2_1_3_1']
-                except:
-                    pass
-                """
+                taxon_to_clusterid = {leaf:n for (leaf, n) in leaf_binary_indices if primaryobj_solution[(leaf, n)] > 0}
+
                 optimal_solutions.append(taxon_to_clusterid)
 
         return optimal_solutions
