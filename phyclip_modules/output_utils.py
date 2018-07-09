@@ -138,7 +138,6 @@ class phyclip_output(object):
         # generate color scheme for taxon_to_clusterid
         clusterid_to_color = self.generate_color_scheme(self.clusterid_to_taxa.keys())
 
-        clusterid_traversed = []
         for n, node in enumerate(output_tree.traverse(strategy='levelorder')):
             if n == 0:
                 ts.scale_length = float('{:.3f}'.format(node.get_farthest_leaf()[-1]/10))
