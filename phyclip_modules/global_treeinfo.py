@@ -79,7 +79,7 @@ class get_global_tree_info(object):
                     self.leaf_dist_to_node[leaf] = {n: dist}
 
                 with open(self.treeinfo_fname, self.initial_write_state) as output:
-                    output.write('L{},N{},D{}\n'.format(leaf, n, dist))
+                    output.write('L{},N{},D{}\r\n'.format(leaf, n, dist))
 
             # sort leaves by distance to node in reverse-order
             node_to_leaves[n] = sorted(node.get_leaf_names(), key=lambda leaf: self.leaf_dist_to_node[leaf][n], reverse=True)
@@ -164,7 +164,7 @@ class get_global_tree_info(object):
 
                 self.leafpair_to_distance[(leaf_x, leaf_y)] = self.leafpair_to_distance[(leaf_y, leaf_x)] = dist
                 with open(self.treeinfo_fname, 'a') as output:
-                    output.write('I{},J{},D{}\n'.format(leaf_x, leaf_y, dist))
+                    output.write('I{},J{},D{}\r\n'.format(leaf_x, leaf_y, dist))
 
         node_to_ancestral_nodes = {}
         node_to_descendant_nodes = {}
@@ -232,6 +232,6 @@ class get_global_tree_info(object):
                         self.nodepair_to_pval[(i,j)] = pval
 
                         with open(self.treeinfo_fname, 'a') as output:
-                            output.write('I{},J{},{}{}\n'.format(i, j, 'KP' if hytest_method == 'Kuiper' else 'KS', pval))
+                            output.write('I{},J{},{}{}\r\n'.format(i, j, 'KP' if hytest_method == 'Kuiper' else 'KS', pval))
 
         return self.nodepair_to_pval

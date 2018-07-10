@@ -23,7 +23,7 @@ class phyclip_output(object):
 
         with open('cluster_{}_{}.txt'.format(self.clean_up_status, self.outfname), 'w') as output:
 
-            output.write('CLUSTER\tTAXA\tSensitivity-induced (original cluster-node-id)\tSub-cluster subsumed into parent (original cluster-node-id)\n')
+            output.write('CLUSTER\tTAXA\tSensitivity-induced (original cluster-node-id)\tSub-cluster subsumed into parent (original cluster-node-id)\r\n')
             for taxon, clusterid in self.taxon_to_clusterid.items():
 
 
@@ -32,11 +32,11 @@ class phyclip_output(object):
                     output.write('\t{}'.format(self.sensitivity_subsumed_taxa_to_clusterid[taxon] if taxon in self.sensitivity_subsumed_taxa_to_clusterid else ''))
                 if self.nosub_taxa_to_clusterid != False:
                     output.write('\t{}'.format(self.nosub_taxa_to_clusterid[taxon] if taxon in self.nosub_taxa_to_clusterid else ''))
-                output.write('\n')
+                output.write('\r\n')
 
                 taxon_start_index = curr_tree_string.find(taxon)
                 if taxon_start_index < 0:
-                    raise SystemExit('\nERROR: Problem parsing taxon ({}) in tree string.\n'.format(taxon))
+                    raise SystemExit('\r\nERROR: Problem parsing taxon ({}) in tree string.\r\n'.format(taxon))
                 else:
                     curr_tree_string = curr_tree_string.replace(taxon, "'{}'[&CLUSTER='{}']".format(re.sub("(^'|'$)", "", taxon), clusterid))
 
@@ -45,39 +45,39 @@ class phyclip_output(object):
     def figtree_output(self, modified_tree_string):
 
         with open('tree_{}_{}.tre'.format(self.clean_up_status, self.outfname), 'w') as output:
-            output.write('#NEXUS\nBegin taxon;\n\tDimensions ntax={};\n\t\tTaxlabels\n'.format(len(self.taxon_list)))
+            output.write('#NEXUS\r\nBegin taxon;\r\n\tDimensions ntax={};\r\n\t\tTaxlabels\r\n'.format(len(self.taxon_list)))
             for taxon in self.taxon_list:
                 if taxon in self.taxon_to_clusterid:
-                    output.write("\t\t\t'{}_cluster{}'\n".format(re.sub("(^'|'$)", "", taxon), self.taxon_to_clusterid[taxon]))
+                    output.write("\t\t\t'{}_cluster{}'\r\n".format(re.sub("(^'|'$)", "", taxon), self.taxon_to_clusterid[taxon]))
                 else:
-                    output.write('\t\t\t{}\n'.format(taxon))
+                    output.write('\t\t\t{}\r\n'.format(taxon))
 
-            output.write('\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n')
+            output.write('\t\t\t;\r\nEnd;\r\nBegin trees;\r\n\tTranslate\r\n')
 
             for i, taxon in enumerate(self.taxon_list):
                 if taxon in self.taxon_to_clusterid:
-                    output.write("\t\t{:>4} '{}_cluster{}'{}\n".format(i+1, re.sub("(^'|'$)", '', taxon), self.taxon_to_clusterid[taxon], '' if i+1 == len(self.taxon_list) else ','))
+                    output.write("\t\t{:>4} '{}_cluster{}'{}\r\n".format(i+1, re.sub("(^'|'$)", '', taxon), self.taxon_to_clusterid[taxon], '' if i+1 == len(self.taxon_list) else ','))
                 else:
-                    output.write("\t\t{:>4} '{}'{}\n".format(i+1, re.sub("(^'|'$)", '', taxon), '' if i+1 == len(self.taxon_list) else ','))
+                    output.write("\t\t{:>4} '{}'{}\r\n".format(i+1, re.sub("(^'|'$)", '', taxon), '' if i+1 == len(self.taxon_list) else ','))
 
                 taxon_start_index = modified_tree_string.find("'{}'".format(re.sub("(^'|'$)", '', taxon)))
                 if taxon_start_index < 0:
-                    raise SystemExit('\nERROR: Problem parsing taxon ({}) in tree string.\n'.format(taxon))
+                    raise SystemExit('\r\nERROR: Problem parsing taxon ({}) in tree string.\r\n'.format(taxon))
                 else:
                     modified_tree_string = modified_tree_string.replace("'{}'".format(re.sub("(^'|'$)", "", taxon)), str(i+1))
 
-            output.write(';\ntree TREE1 = {}\nEnd;\n'.format(modified_tree_string))
+            output.write(';\r\ntree TREE1 = {}\r\nEnd;\r\n'.format(modified_tree_string))
 
     def prior_output(self, pc_input):
         with open('prior_{}.txt'.format(self.outfname), 'w') as output:
-            output.write('Prior_cluster_id\tTaxon\tCurrent_cluster_id\n')
+            output.write('Prior_cluster_id\tTaxon\tCurrent_cluster_id\r\n')
             for p, leaves_in_pc in pc_input.items():
                 for leaf in leaves_in_pc:
                     output.write('{}\t{}\t'.format(p, leaf))
                     try:
-                        output.write('{}\n'.format(self.taxon_to_clusterid[leaf]))
+                        output.write('{}\r\n'.format(self.taxon_to_clusterid[leaf]))
                     except:
-                        output.write('\n')
+                        output.write('\r\n')
 
     def generate_heatmap(self, ete3_tree, *args):
 

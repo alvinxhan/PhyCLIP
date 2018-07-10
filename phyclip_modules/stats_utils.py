@@ -328,4 +328,4 @@ def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepai
             clustered_taxa = [i for j in clusterid_to_taxa.values() for i in j]
             output.write('{}\t'.format(len(set(prior_taxa)&set(clustered_taxa))/len(prior_taxa)))
 
-        output.write('{}\n'.format('\t'.join(map(str, results))))
+        output.write('{}\r\n'.format('\t'.join(map(str, results))))
