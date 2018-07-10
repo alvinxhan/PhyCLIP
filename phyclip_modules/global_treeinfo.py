@@ -38,6 +38,8 @@ class get_global_tree_info(object):
         5) Calculate mean distance of child-nodes of each node to root
         '''
 
+        print [self.treeinfo_fname]
+        exit(1)
         tree_string = self.tree_object.write(format=5)  # append node id annotation
 
         node_to_leaves = {}
