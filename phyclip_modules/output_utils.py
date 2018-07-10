@@ -140,7 +140,10 @@ class phyclip_output(object):
 
         for n, node in enumerate(output_tree.traverse(strategy='levelorder')):
             if n == 0:
-                ts.scale_length = float('{:.3f}'.format(node.get_farthest_leaf()[-1]/10))
+                try:
+                    ts.scale_length = float('{:.3f}'.format(node.get_farthest_leaf()[-1]/10))
+                except:
+                    pass
 
             if node.is_leaf():
                 # color branches
