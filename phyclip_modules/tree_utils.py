@@ -42,7 +42,7 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
     fhandle = open(treeinfo_file, 'rU').readlines()
     for line in fhandle:
         try:
-            leaf, n, dist = re.search('L(.+),N(\d+),D([\d\.eE-]+)', line).group(1,2,3)
+            leaf, n, dist = re.search('L([^,]+),N([^,]+),D([\d\.eE-]+)', line).group(1,2,3)
             try:
                 leaf_dist_to_node[leaf][int(n)] = float(dist)
             except:
@@ -51,13 +51,13 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
             pass
 
         try:
-            leaf_x, leaf_y, dist = re.search('I(.+),J(.+),D([\d\.eE-]+)', line).group(1, 2, 3)
+            leaf_x, leaf_y, dist = re.search('I([^,]+),J([^,]+),D([\d\.eE-]+)', line).group(1, 2, 3)
             leafpair_to_distance[(leaf_x, leaf_y)] = leafpair_to_distance[(leaf_y, leaf_x)] = float(dist)
         except:
             pass
 
         try:
-            i, j, ks_pval, kp_pval = re.search('I(\d+),J(\d+),KS([\d\.eE-]+),KP([\d\.eE-]+)', line).group(1, 2, 3, 4)
+            i, j, ks_pval, kp_pval = re.search('I([^,]+),J([^,]+),KS([\d\.eE-]+),KP([\d\.eE-]+)', line).group(1, 2, 3, 4)
             if hytest_method == 'Kuiper':
                 nodepair_to_pval[(int(i), int(j))] = float(kp_pval)
             else:
@@ -66,7 +66,7 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
             pass
 
         try:
-            i, j, test_type, pval = re.search('I(\d+),J(\d+),(KS|KP)([\d\.eE-]+)', line).group(1, 2, 3, 4)
+            i, j, test_type, pval = re.search('I([^,]+),J([^,]+),(KS|KP)([\d\.eE-]+)', line).group(1, 2, 3, 4)
             if (test_type == 'KS' and hytest_method == 'Kuiper') or (test_type == 'KP' and hytest_method == 'KS'):
                 continue
             else:
