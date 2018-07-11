@@ -21,9 +21,9 @@ PhyCLIP depends on several Python libraries:
 * numpy, scipy, statsmodels  (mathematical/statistical operations)
 * ete3 (parsing phylogenetic trees) 
 
-To install through Anaconda: 
+To install the dependencies, go to Terminal (Mac/Linux) or Anaconda Prompt (Windows): 
 ```
-$ conda install numpy scipy ete3 statsmodels
+$ conda install -c numpy scipy ete3 statsmodels
 ```
 
 Alternatively, if you are using PyPi:
@@ -47,7 +47,12 @@ The easiest way to install Gurobi is via the Anaconda platform:
 
 1. Make sure you have Anaconda for Python 2.7 installed (see above). 
 
-2. Install the Gurobi package via conda:```$ conda install gurobi```
+2. Install the Gurobi package via conda:
+
+```
+$ conda config --add channels http://conda.anaconda.org/gurobi
+$ conda install gurobi
+```
 
 3. You need to install a Gurobi licence next. Visit http://www.gurobi.com/registration/academic-license-reg to register for a free Gurobi account. Follow the instructions in the verification email from Gurobi to set your password and login to your Gurobi account via http://www.gurobi.com/login. 
 
