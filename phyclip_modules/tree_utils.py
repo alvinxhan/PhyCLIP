@@ -48,22 +48,31 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
             except:
                 leaf_dist_to_node[leaf] = {int(n):float(dist)}
         except:
-            try:
-                leaf_x, leaf_y, dist = re.search('I(.+),J(.+),D([\d\.eE-]+)', line).group(1, 2, 3)
-                leafpair_to_distance[(leaf_x, leaf_y)] = leafpair_to_distance[(leaf_y, leaf_x)] = float(dist)
-            except:
-                try:
-                    i, j, ks_pval, kp_pval = re.search('I(\d+),J(\d+),KS([\d\.eE-]+),KP([\d\.eE-]+)', line).group(1, 2, 3, 4)
-                    if hytest_method == 'Kuiper':
-                        nodepair_to_pval[(int(i), int(j))] = float(kp_pval)
-                    else:
-                        nodepair_to_pval[(int(i), int(j))] = float(ks_pval)
-                except:
-                    i, j, test_type, pval = re.search('I(\d+),J(\d+),(KS|KP)([\d\.eE-]+)', line).group(1, 2, 3, 4)
-                    if (test_type == 'KS' and hytest_method == 'Kuiper') or (test_type == 'KP' and hytest_method == 'KS'):
-                        continue
-                    else:
-                        nodepair_to_pval[(int(i), int(j))] = float(pval)
+            pass
+
+        try:
+            leaf_x, leaf_y, dist = re.search('I(.+),J(.+),D([\d\.eE-]+)', line).group(1, 2, 3)
+            leafpair_to_distance[(leaf_x, leaf_y)] = leafpair_to_distance[(leaf_y, leaf_x)] = float(dist)
+        except:
+            pass
+
+        try:
+            i, j, ks_pval, kp_pval = re.search('I(\d+),J(\d+),KS([\d\.eE-]+),KP([\d\.eE-]+)', line).group(1, 2, 3, 4)
+            if hytest_method == 'Kuiper':
+                nodepair_to_pval[(int(i), int(j))] = float(kp_pval)
+            else:
+                nodepair_to_pval[(int(i), int(j))] = float(ks_pval)
+        except:
+            pass
+
+        try:
+            i, j, test_type, pval = re.search('I(\d+),J(\d+),(KS|KP)([\d\.eE-]+)', line).group(1, 2, 3, 4)
+            if (test_type == 'KS' and hytest_method == 'Kuiper') or (test_type == 'KP' and hytest_method == 'KS'):
+                continue
+            else:
+                nodepair_to_pval[(int(i), int(j))] = float(pval)
+        except:
+            pass
 
     return leaf_dist_to_node, leafpair_to_distance, nodepair_to_pval
 
