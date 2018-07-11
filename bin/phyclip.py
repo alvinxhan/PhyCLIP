@@ -195,11 +195,11 @@ if __name__ == '__main__':
 
     if params.treeinfo:
         from phyclip_modules.tree_utils import parse_treeinfo_file
-        #try:
-        global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval = parse_treeinfo_file(params.treeinfo, params.hypo_test)
-        print('Treeinfo file...OK.')
-        #except:
-        #raise SystemExit('\nERROR: Invalid treeinfo file.\n')
+        try:
+            global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval = parse_treeinfo_file(params.treeinfo, params.hypo_test)
+            print('Treeinfo file...OK.')
+        except:
+            raise SystemExit('\nERROR: Invalid treeinfo file.\n')
     else:
         params.treeinfo = '{}_treeinfo.txt'.format(treefname)
 

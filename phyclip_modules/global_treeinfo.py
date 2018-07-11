@@ -24,11 +24,6 @@ class get_global_tree_info(object):
         self.treeinfo_fname = treeinfo_fname
         self.hypo_test_method = hypo_test_method
 
-        if len(self.leaf_dist_to_node) == 0 and len(self.leafpair_to_distance) == 0 and len(self.nodepair_to_pval) == 0:
-            self.initial_write_state = 'w'
-        else:
-            self.initial_write_state = 'a'
-
     def node_indexing(self):
         '''
         1) Index tree nodes by level-order.
@@ -44,6 +39,13 @@ class get_global_tree_info(object):
         nindex_to_node = {}
         node_to_nindex = {}
         node_to_parent_node = {}
+
+        # binary indicating that treeinfo file was parsed
+        treeinfo_file_given = 0
+        if len(self.leaf_dist_to_node) > 0:
+            treeinfo_file_given = 1
+        else:
+            output = open(self.treeinfo_fname, 'w')
 
         # level-order traversal
         for n, node in enumerate(self.tree_object.traverse()):
@@ -66,26 +68,30 @@ class get_global_tree_info(object):
             # distance of leaf to each of its ancestral node
             for leaf_node in node.get_leaves():
                 leaf = leaf_node.name
-                try:
-                    # continue if we have already recorded the distance for leaf-node.
-                    dist = self.leaf_dist_to_node[leaf][n]
-                    continue
-                except:
+
+                if treeinfo_file_given > 0:
+                    try:
+                        # check that we have correctly recovered leaf dist to node from treeinfo file (this will be the check that the correct treeinfo file is being used)
+                        dist = self.leaf_dist_to_node[leaf][n]
+                    except:
+                        raise SystemExit('ERROR: Mismatched leaf and node index found in TREEINFO file. Re-run without TREEINFO file.')
+                else:
                     dist = leaf_node.get_distance(node)
+                    try:
+                        self.leaf_dist_to_node[leaf][n] = dist
+                    except:
+                        self.leaf_dist_to_node[leaf] = {n: dist}
 
-                try:
-                    self.leaf_dist_to_node[leaf][n] = dist
-                except:
-                    self.leaf_dist_to_node[leaf] = {n: dist}
-
-                with open(self.treeinfo_fname, self.initial_write_state) as output:
                     output.write('L{},N{},D{}\r\n'.format(leaf, n, dist))
 
             # sort leaves by distance to node in reverse-order
             node_to_leaves[n] = sorted(node.get_leaf_names(), key=lambda leaf: self.leaf_dist_to_node[leaf][n], reverse=True)
 
+        if treeinfo_file_given == 0:
+            output.close()
+
         # calculate inter-node distances using leaf_dist_to_node
-        print ('Get inter-node distances...')
+        print ('Get distances between nodes...')
         ancestral_nodepair_to_dist = {}
         for leaf, node_to_dist in self.leaf_dist_to_node.items():
             ancestors_of_leaf = node_to_dist.keys()[:]
@@ -149,6 +155,7 @@ class get_global_tree_info(object):
         4) Get leaf to ancestor trace
         5) Get mean child-nodes distance to ancestral trace
         '''
+
         if len(self.leafpair_to_distance) < 2*nCr(all_taxa_len, 2):
             print ('Parsing all pairwise distances between leaves...')
             for x, y in itertools.combinations(self.tree_object.get_leaves(), 2):
@@ -208,7 +215,7 @@ class get_global_tree_info(object):
         '''
         Perform all inter-clusters' hypotheses tests
         '''
-        if len(self.nodepair_to_pval) < 2*nCr(no_of_internal_nodes, 2):
+        if len(self.nodepair_to_pval) < nCr(no_of_internal_nodes, 2):
             from phyclip_modules import inter_cluster_hytest
 
             print ('Performing {} tests...'.format(hytest_method))

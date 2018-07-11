@@ -35,6 +35,8 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
     '''
     treeinfo file parser
     '''
+    print ('Reading Treeinfo file...')
+
     leaf_dist_to_node = {}
     leafpair_to_distance = {}
     nodepair_to_pval = {}
@@ -47,12 +49,14 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
                 leaf_dist_to_node[leaf][int(n)] = float(dist)
             except:
                 leaf_dist_to_node[leaf] = {int(n):float(dist)}
+            continue
         except:
             pass
 
         try:
             leaf_x, leaf_y, dist = re.search('I([^,]+),J([^,]+),D([\d\.eE-]+)', line).group(1, 2, 3)
             leafpair_to_distance[(leaf_x, leaf_y)] = leafpair_to_distance[(leaf_y, leaf_x)] = float(dist)
+            continue
         except:
             pass
 
@@ -62,6 +66,7 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
                 nodepair_to_pval[(int(i), int(j))] = float(kp_pval)
             else:
                 nodepair_to_pval[(int(i), int(j))] = float(ks_pval)
+            continue
         except:
             pass
 
@@ -71,6 +76,7 @@ def parse_treeinfo_file(treeinfo_file, hytest_method):
                 continue
             else:
                 nodepair_to_pval[(int(i), int(j))] = float(pval)
+                continue
         except:
             pass
 
