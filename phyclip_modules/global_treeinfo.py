@@ -239,6 +239,6 @@ class get_global_tree_info(object):
                         self.nodepair_to_pval[(i,j)] = pval
 
                         with open(self.treeinfo_fname, 'a') as output:
-                            output.write('I{},J{},{}{}\r\n'.format(i, j, 'KP' if hytest_method == 'Kuiper' else 'KS', pval))
+                            output.write('I{},J{},{}{}\r\n'.format(i, j, 'KP' if hytest_method == 'kuiper' else 'KS', pval))
 
         return self.nodepair_to_pval
