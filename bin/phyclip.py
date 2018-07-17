@@ -17,21 +17,31 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1')
     parser.add_argument('-i', '--input_file', required=True, type=str, help='Input file. See manual for format details.')
-    parser.add_argument('--treeinfo', type=str, help='Tree information file generated from previous PhyCLIP run.')
-    parser.add_argument('--prior', type=str, help='Prior information on clustered taxa. File format same as PhyCLIP cluster text file output (i.e. CLUSTER-ID{tab}TAXON). Only works with gurobi solver, no support for glpk.')
+    parser.add_argument('--treeinfo', type=str, help='*_treeinfo.txt file generated from PREVIOUS PhyCLIP run of the SAME phylogenetic tree.')
+    parser.add_argument('--no_treeinfo', action='store_true', help='Stop PhyCLIP from generating *_treeinfo.txt file.')
+
+    parser.add_argument('--optimise', choices=['intermediate', 'high'], help='PhyCLIP automatically searches for the clustering result from the OPTIMAL input parameter set. See documentation for details. Must have >1 input parameter set in input file.')
+
+    parser.add_argument('--prior', type=str, help='Prior information on clustered taxa. File format same as PhyCLIP cluster text file output (i.e. CLUSTER-ID{tab}SEQUENCE-NAME). Only works with gurobi solver, no support for glpk.')
     parser.add_argument('--prior_weights', type=str, help='Weights on importance/confidence between prior clusters to remain clustered together. File format: CLUSTER-ID{tab}INT/FLOAT_WEIGHT{\\newline}. Equal weights will be assumed if none is given.')
+
     parser.add_argument('--pdf_tree', action='store_true', help='PDF tree output annotated with cluster results.')
-    parser.add_argument('--collapse_zero_branch_lengths', default=0, choices=[0, 1], type=int, help='Collapse nodes with zero branch lengths of tree prior to running PhyCLIP (default = %(default)s).')
-    parser.add_argument('--equivalent_zero_length', default=0.0000001, type=float, help='Maximum branch length to be rounded to zero if the --collapse_zero_branch_lengths flag is passed (advanced option, default = %(default)s).')
+
+    parser.add_argument('--collapse_zero_branch_lengths', default=0, choices=[0, 1], type=int, help='Collapse internal nodes with zero branch lengths of tree before running PhyCLIP (default = %(default)s).')
+    parser.add_argument('--equivalent_zero_length', default=0.000001, type=float, help='Maximum branch length to be rounded to zero if the --collapse_zero_branch_lengths flag is passed (advanced option, default = %(default)s).')
+
     parser.add_argument('--gam_method', choices=['mad', 'qn'], default='qn',  help='Method to estimate robust dispersion measure (default = %(default)s).')
     parser.add_argument('--hypo_test', choices=['kuiper', 'kolsmi'], default='kuiper', help='Hypothesis test to use for statistical differentiation of distance distributions (default = %(default)s).')
     parser.add_argument('--preQ', default=0, choices=[0, 1], type=int, help='Perform Benjamini-Hochberg corrections of p-values BEFORE filtering nodes that are < minimum cluster size (advanced option, default = %(default)s).')
-    parser.add_argument('--subsume_sensitivity_induced_clusters', default=1, choices=[0, 1], type=int, help='Subsume cluster-size sensitivity-induced clusters into parent cluster (advanced option, default = %(default)s).')
+
+    parser.add_argument('--subsume_sensitivity_induced_clusters', default=1, choices=[0, 1], type=int, help='Subsume cluster-size sensitivity-induced clusters into parent cluster (default = %(default)s).')
     parser.add_argument('--sensitivity_percentile', default=25, type=int, help='Percentile of cluster size distribution under which a cluster is considered to be sensitivity-induced (advanced option, default = %(default)s%%).')
-    parser.add_argument('--subsume_subclusters', default=0, choices=[0, 1], type=int, help='Subsume sub-clusters into their respective parent clusters (advanced option, default = %(default)s).')
+    parser.add_argument('--subsume_subclusters', default=0, choices=[0, 1], type=int, help='Subsume sub-clusters into their respective parent clusters (default = %(default)s).')
+
     parser.add_argument('--solver', default='gurobi', choices=['glpk', 'gurobi'], type=str, help='Preferred ILP solver IF more than one solvers are available (default: %(default)s).')
     parser.add_argument('--solver_verbose', default=0, choices=[0, 1], type=int, help='ILP solver verbose (default: %(default)s)')
     parser.add_argument('--solver_check', action='store_true', help='Check available ILP solver(s) installed.')
+
     params = parser.parse_args()
 
     print ('{}\n\n{:^72}\n{:^72}\n\n{}'.format(''.join(['-']*72), 'Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)', 'Version 0.1', ''.join(['-']*72)))
@@ -56,9 +66,9 @@ if __name__ == '__main__':
     if len(available_solvers) > 0:
         # exit if only to check available ILP solver(s) installed
         if params.solver_check:
-            raise SystemExit('\nAvailable solvers...{}\n'.format(', '.join(available_solvers)))
+            raise Exception('\nAvailable solvers...{}\n'.format(', '.join(available_solvers)))
     else:
-        raise SystemExit('\nERROR: No supported solvers installed. See manual for details on how to download and install supported ILP solvers.\n')
+        raise Exception('\nNo supported solvers installed. See manual for details on how to download and install supported ILP solvers.\n')
 
     # check input file format
     infhandle = filter(None, [_.strip() for _ in open(params.input_file, 'rU')])
@@ -75,7 +85,7 @@ if __name__ == '__main__':
         tree = ete3.Tree(newick_tree_string, format=5)
         print ('\nTree file...OK')
     except:
-        raise SystemExit('\nERROR: Invalid tree file. Check that the correct path to the NEWICK tree file is given in the first line of the input file.\n')
+        raise Exception('\nInvalid tree file. Check that the correct path to the NEWICK tree file is given in the first line of the input file.\n')
 
     tree.ladderize() # ladderize tree
     taxon_list = tree.get_leaf_names() # get list of all taxa
@@ -85,10 +95,13 @@ if __name__ == '__main__':
         from phyclip_modules.tree_utils import collapse_zero_branch_lengths
         tree = collapse_zero_branch_lengths(tree, params.equivalent_zero_length)
 
+        if tree == False:
+            raise Exception('No branches were collapsed. Check the upper limit of zero-length branches on your tree and adjust accordingly using --equivalent_zero_length')
+
         # write zero branch length collapsed tree as a newick file
-        treefname = 'zero-branch-length-collapsed_{}.nwk'.format(treefname)
-        tree.write(format=5, outfile=treefname)
-        print ('Collapsed newick tree file...{}'.format(treefname))
+        treefname = 'zero-branch-length-collapsed_{}'.format(treefname)
+        tree.write(format=5, outfile='{}.nwk'.format(treefname))
+        print ('Collapsed newick tree file...{}.nwk'.format(treefname))
 
     original_tree_string = tree.write(format=5)
 
@@ -97,9 +110,63 @@ if __name__ == '__main__':
     for _, line in enumerate(infhandle):
         try:
             cs, fdr, gam = line.strip().split(',')
-            parameters.append((int(cs), float(fdr), float(gam)))
+            try:
+                parameters.append((int(cs), float(fdr), float(gam)))
+                continue
+            except:
+                pass
         except:
-            raise SystemExit('\nERROR: Invalid parameter set format in line {} of input file.\n'.format(_+2))
+            raise Exception('\nInvalid parameter set format in line {} of input file.\n'.format(_ + 2))
+
+        # check for range
+        cs_range = []
+        try:
+            lb, rb, increment = re.search('(\d+)-(\d+)\((\d+)\)', cs).group(1, 2, 3)
+            if int(rb) <= int(lb):
+                raise Exception('\nInvalid min cluster size format in line {} of input file.\n'.format(_ + 2))
+            for i in range(int(lb), int(rb)+1, int(increment)):
+                cs_range.append(i)
+        except:
+            try:
+                cs_range.append(int(cs))
+            except:
+                raise Exception('\nInvalid min cluster size format in line {} of input file.\n'.format(_ + 2))
+
+        fdr_range = []
+        try:
+            lb, rb, increment = re.search('(\d+\.\d+)-(\d+\.\d+)\((\d+\.\d+)\)', fdr).group(1, 2, 3)
+            if float(rb) <= float(lb):
+                raise Exception('\nInvalid fdr format in line {} of input file.\n'.format(_ + 2))
+            currip = float(lb)
+            while currip <= float(rb):
+                fdr_range.append(currip)
+                currip += float(increment)
+        except:
+            try:
+                fdr_range.append(float(fdr))
+            except:
+                raise Exception('\nInvalid fdr format in line {} of input file.\n'.format(_ + 2))
+
+        gam_range = []
+        try:
+            lb, rb, increment = re.search('(\d+(\.\d+)*)-(\d+(\.\d+)*)\((\d+(\.\d+)*)\)', gam).group(1, 3, 5)
+            if float(rb) <= float(lb):
+                raise Exception('\nInvalid gamma format in line {} of input file.\n'.format(_ + 2))
+            currip = float(lb)
+            while currip <= float(rb):
+                gam_range.append(currip)
+                currip += float(increment)
+        except:
+            try:
+                gam_range.append(float(gam))
+            except:
+                raise Exception('\nInvalid gamma format in line {} of input file.\n'.format(_ + 2))
+
+        for x in cs_range:
+            for y in fdr_range:
+                for z in gam_range:
+                    parameters.append((x, y, z))
+
     print('Parameter sets...OK')
 
     # read prior file (if given)
@@ -111,7 +178,7 @@ if __name__ == '__main__':
             try:
                 clusterid, taxon = line.split('\t')[:2]
             except:
-                raise SystemExit('\nERROR: Invalid prior file given. Check manual or type --help for details on correct file format.\n')
+                raise Exception('\nInvalid prior file given. Check manual or type --help for details on correct file format.\n')
 
             if clusterid == 'CLUSTER' and taxon == 'TAXA':
                 continue
@@ -125,7 +192,7 @@ if __name__ == '__main__':
         # if cluster prior is given, check that all stated taxa in prior file are present in tree
         taxa_in_prior_not_present_in_tree = list(set([i for j in prior_input.values() for i in j]) - set(taxon_list))
         if len(taxa_in_prior_not_present_in_tree) > 0:
-            raise SystemExit('\nERROR: Some taxa in prior file are not present in tree - {}.\n'.format(', '.join(taxa_in_prior_not_present_in_tree)))
+            raise Exception('\nSome taxa in prior file are not present in tree - {}.\n'.format(', '.join(taxa_in_prior_not_present_in_tree)))
 
         # prior weights
         if params.prior_weights:
@@ -136,12 +203,12 @@ if __name__ == '__main__':
                 try:
                     clusterid, weight = line.split('\t')
                 except:
-                    raise SystemExit('\nERROR: Invalid prior weights file given. Check manual or type --help for details on correct file format.\n')
+                    raise Exception('\nInvalid prior weights file given. Check manual or type --help for details on correct file format.\n')
 
                 if clusterid in prior_input:
                     prior_weights[clusterid] = float(weight)
                 else:
-                    raise SystemExit('\nERROR: CLUSTER-ID {} in prior weights file was not found in prior file.\n'.format(clusterid))
+                    raise Exception('\nCLUSTER-ID {} in prior weights file was not found in prior file.\n'.format(clusterid))
 
             prior_weights = {clusterid:weight/(sum(prior_weights.values())) for clusterid, weight in prior_weights.items()}
         else:
@@ -164,7 +231,7 @@ if __name__ == '__main__':
             params.solver = 'gurobi'
             print ('WARNING: Prior analyses can only be performed using gurobi. Switching to gurobi solver...')
         else:
-            raise SystemExit('\nERROR Prior analyses can only be performed using gurobi solver.\n')
+            raise Exception('\nPrior analyses can only be performed using gurobi solver.\n')
 
     # check if summary stats file already exist in current working directory
     statsfname = 'summary-stats_{}.txt'.format(inputfname)
@@ -172,7 +239,7 @@ if __name__ == '__main__':
         try:
             overwrite_statsfile = re.search('(y|n)', raw_input('\nWARNING: SUMMARY STATS FILE {} exists in current working directory. Overwrite? (y/n): '.format(statsfname))).group()
         except:
-            raise SystemExit('\nERROR: Invalid input.\n')
+            raise Exception('\nInvalid input.\n')
     else:
         overwrite_statsfile = 'y'
 
@@ -185,6 +252,12 @@ if __name__ == '__main__':
                          'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
                          'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
 
+            #output.write('Treefile\tCS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tPrior_taxa_clustered(%)\t'
+            #             '#_of_clustered_sequences\tTotal_no_of_sequences\t%_clustered\t#_of_clusters\t'
+            #            'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
+            #            'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
+            #            'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
+
     # --- GLOBAL TREE INFORMATION --- #
     print ('\nGetting tree information...')
 
@@ -193,37 +266,43 @@ if __name__ == '__main__':
     global_leafpair_to_distance = {}
     global_nodepair_to_pval = {}
 
+    # read treeinfo file if available
     if params.treeinfo:
         from phyclip_modules.tree_utils import parse_treeinfo_file
         try:
-            global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval = parse_treeinfo_file(params.treeinfo, params.hypo_test)
+            global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval = parse_treeinfo_file(params.treeinfo)
             print('Treeinfo file...OK.')
         except:
-            raise SystemExit('\nERROR: Invalid treeinfo file.\n')
+            raise Exception('\nInvalid treeinfo file. Try re-running without treeinfo file.\n')
     else:
-        params.treeinfo = '{}_treeinfo.txt'.format(treefname)
+        # treeinfo file = TRUE
+        if params.no_treeinfo == False:
+            params.treeinfo = '{}_treeinfo.txt'.format(treefname)
 
-        if params.treeinfo in os.listdir(os.getcwd()):
-            try:
-                overwrite_treeinfo = re.search('(y|n)', raw_input('\nWARNING: TREEINFO FILE {} exists in current working directory. Overwrite? (y/n): '.format(params.treeinfo))).group()
-            except:
-                raise SystemExit('\nERROR: Invalid input.\n')
-
-            if overwrite_treeinfo == 'n':
-                from phyclip_modules.tree_utils import parse_treeinfo_file
+            # check if a copy of treeinfo file is already in current working directiory
+            if params.treeinfo in os.listdir(os.getcwd()):
                 try:
-                    global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval = parse_treeinfo_file(params.treeinfo, params.hypo_test)
-                    print('Treeinfo file...OK.')
+                    overwrite_treeinfo = re.search('(y|n)', raw_input('\nWARNING: TREEINFO FILE {} exists in current working directory. Overwrite? (y/n): '.format(params.treeinfo))).group()
                 except:
-                    raise SystemExit('\nERROR: Invalid treeinfo file.\n')
+                    raise Exception('\nInvalid input.\n')
 
-    global_tree_info_obj = get_global_tree_info(tree, global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval, params.treeinfo, params.hypo_test)
+                # no overwrite over previous treeinfo file.
+                if overwrite_treeinfo == 'n':
+                    from phyclip_modules.tree_utils import parse_treeinfo_file
+                    try:
+                        global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval = parse_treeinfo_file(params.treeinfo)
+                        print('Treeinfo file...OK.')
+                    except:
+                        print ('\nWARNING: Invalid treeinfo file in current working directory. Overwriting...')
+                        pass
+
+    global_tree_info_obj = get_global_tree_info(tree, global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval, params.treeinfo, params.hypo_test, params.no_treeinfo)
 
     global_tree_string, global_node_to_leaves, global_nindex_to_node, global_node_to_nindex, global_leaf_dist_to_node, global_nodepair_to_dist, global_node_to_parent_node, global_node_to_mean_child_dist2root = global_tree_info_obj.node_indexing()
 
-    global_leafpair_to_distance, global_node_to_pwdist, global_node_to_mean_pwdist, global_node_to_ancestral_nodes, global_node_to_descendant_nodes, global_leaf_to_ancestors, global_node_to_mean_child_dist2anc = global_tree_info_obj.pwdist_dist_and_ancestral_trace(len(taxon_list), global_node_to_leaves, global_nindex_to_node, global_node_to_nindex, global_node_to_mean_child_dist2root, global_nodepair_to_dist)
+    global_leafpair_to_distance, global_node_to_pwdist, global_node_to_mean_pwdist, global_node_to_ancestral_nodes, global_node_to_descendant_nodes, global_leaf_to_ancestors, global_node_to_mean_child_dist2anc = global_tree_info_obj.pwdist_dist_and_ancestral_trace(global_node_to_leaves, global_nindex_to_node, global_node_to_nindex, global_node_to_mean_child_dist2root, global_nodepair_to_dist)
 
-    global_nodepair_to_pval = global_tree_info_obj.get_global_pval(len(global_node_to_nindex), params.hypo_test, global_node_to_leaves, global_node_to_ancestral_nodes, global_node_to_pwdist, global_leafpair_to_distance)
+    global_nodepair_to_pval = global_tree_info_obj.get_global_pval(params.hypo_test, global_node_to_leaves, global_node_to_ancestral_nodes, global_node_to_pwdist, global_leafpair_to_distance)
 
     # pre-calculation for within-cluster limit
     med_x = np.median(global_node_to_mean_pwdist.values())
@@ -234,10 +313,11 @@ if __name__ == '__main__':
 
     ### --- GLOBAL TREE INFORMATION --- ###
 
-    csgam_to_reassociation_memory = {} # memory of reassociated nodes/leaves for repeated (cs, gam) set
+    gam_to_reassociation_memory = {} # memory of reassociated nodes/leaves for repeated (cs, gam) set
 
     # Start runs
     print ('\nStarting runs...')
+    optimise_dict = {}
     for p_index, (cs, fdr, gam) in enumerate(parameters):
         ### --- PARAMETER-SPECIFIC TREE INFORMATION --- ###
         print ('\n{:<26}{:^20}{:>26}'.format(''.join(['-']*25), ", ".join(['cs{}'.format(cs), 'fdr{}'.format(fdr), 'gam{}'.format(gam)]), ''.join(['-']*25)))
@@ -246,7 +326,7 @@ if __name__ == '__main__':
         curr_wcl = med_x + (gam * mad_x)
 
         # level-order sorted list of nodes with leaves >= cs
-        curr_list_of_ancestral_node = sorted([node for node, leaves in global_node_to_leaves.items() if len(leaves) >= cs])
+        #curr_list_of_ancestral_node = sorted([node for node, leaves in global_node_to_leaves.items() if len(leaves) >= cs])
 
         # reassociate subtrees and leaves based on curr_wcl
         print ('\nReassociating subtrees/leaves...')
@@ -254,26 +334,29 @@ if __name__ == '__main__':
 
         # if (cs, gam) set is repeated, check if we have performed reassociation analyses before to speed up runs
         try:
-            curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = csgam_to_reassociation_memory[(cs, gam)]
+            #curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = gam_to_reassociation_memory[(cs, gam)]
+            curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = gam_to_reassociation_memory[gam]
         except:
-            nla_object = node_leaves_reassociation(cs, curr_wcl, params.gam_method, curr_list_of_ancestral_node, global_node_to_leaves, global_node_to_descendant_nodes, global_node_to_mean_pwdist, global_node_to_mean_child_dist2anc, global_node_to_parent_node, global_nodepair_to_dist, global_leaf_dist_to_node, global_leaf_to_ancestors)
+            #nla_object = node_leaves_reassociation(cs, curr_wcl, params.gam_method, curr_list_of_ancestral_node, global_node_to_leaves, global_node_to_descendant_nodes, global_node_to_mean_pwdist, global_node_to_mean_child_dist2anc, global_node_to_parent_node, global_nodepair_to_dist, global_leaf_dist_to_node, global_leaf_to_ancestors)
+
+            nla_object = node_leaves_reassociation(cs, curr_wcl, params.gam_method, global_node_to_leaves, global_node_to_descendant_nodes, global_node_to_mean_pwdist, global_node_to_mean_child_dist2anc, global_node_to_parent_node, global_nodepair_to_dist, global_leaf_dist_to_node, global_leaf_to_ancestors)
 
             curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = nla_object.nla_main()
 
-            for node, leaves in curr_node_to_leaves.items():
-                # filter by cs
-                if len(leaves) < cs:
-                    del curr_node_to_leaves[node]
-                    continue
-
             # save to memory to speed up subsequent runs with the same cs/gam parameter set
-            csgam_to_reassociation_memory[(cs, gam)] = [curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist]
+            gam_to_reassociation_memory[gam] = [curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist]
 
-        # update pairwise distance dictionaries/nodes' ancestry relations
-        print ('Updating tree info...')
-        curr_leaves = [x for y in curr_node_to_leaves.values() for x in y]
+        # update pairwise distance dictionaries/nodes' ancestry relations for cs
+        print('Updating tree info...')
+        for node, leaves in curr_node_to_leaves.items():
+            if len(leaves) < cs:
+                del curr_node_to_leaves[node]
+                continue
+
         curr_list_of_ancestral_node = curr_node_to_leaves.keys()[:]
+        curr_leaves = [x for y in curr_node_to_leaves.values() for x in y]
         curr_node_to_descendant_nodes = {k:list(set(v)&set(curr_list_of_ancestral_node)) for k,v in curr_node_to_descendant_nodes.items() if k in curr_list_of_ancestral_node and len(v) > 0}
+        curr_node_to_mean_pwdist = {k:v for k,v in curr_node_to_mean_pwdist.items() if k in curr_list_of_ancestral_node}
 
         # multiple-testing correction using BH procedure could be done without filtering for cs (pre) or post filtering for cs (post)
         if params.preQ == 1:
@@ -294,13 +377,13 @@ if __name__ == '__main__':
             #try:
             all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose)
             #except:
-            #raise SystemExit('\nERROR: Unable to solve ILP model using gurobi. You may try to use other available solvers by the --solver flag.\n')
+            #raise Exception('\nUnable to solve ILP model using gurobi. You may try to use other available solvers by the --solver flag.\n')
         else:
             from phyclip_modules.glpk_solver import glpk_solver
-            try:
-                all_solutions = glpk_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, params.solver_verbose)
-            except:
-                raise SystemExit('\nERROR: Unable to solve ILP model using glpk. You may try to use other available solvers by the --solver flag.\n')
+            #try:
+            all_solutions = glpk_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, params.solver_verbose)
+            #except:
+            #raise Exception('\nUnable to solve ILP model using glpk. You may try to use other available solvers by the --solver flag.\n')
 
         if all_solutions == 'na':
             # continue to next parameter set if no solution
@@ -368,6 +451,7 @@ if __name__ == '__main__':
 
             # print outputs
             print ('Writing outputs (post-clean-up)...')
+            #print ('Writing outputs...')
             output_obj = phyclip_output(original_tree_string, global_tree_string, curr_taxon_to_clusterid, curr_clusterid_to_taxa, taxon_list, curr_outfname, 'post-clean', curr_sensitivity_subsumed_taxa_to_clusterid if params.subsume_sensitivity_induced_clusters else False, curr_nosub_taxa_to_clusterid if params.subsume_subclusters else False)
             # cluster file
             curr_modified_tree_string = output_obj.cluster_output()
@@ -375,7 +459,12 @@ if __name__ == '__main__':
             output_obj.figtree_output(curr_modified_tree_string)
 
             # append to summary stats output file
-            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean', prior_input)
+            curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean', prior_input)
+            #curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, prior_input)
+
+            # optimise
+            if params.optimise:
+                optimise_dict[(cs, fdr, gam, sol_index)] = (curr_coverage, curr_mu_pwd, curr_mu_icd)
 
             # prior output
             if params.prior:
@@ -385,5 +474,32 @@ if __name__ == '__main__':
             if params.pdf_tree:
                 output_obj.ete3_pdf_tree_output(prior_input)
 
-    print ('\n...All parameters sets analysed.\n')
+    # find optimal parameter
+    if params.optimise:
+        if len(parameters) > 1:
+            print ('\nDetermining the optimal parameter...')
+            # reverse curr_mu_pwd
+            max_curr_mu_pwd = max([v[1] for v in optimise_dict.values()])
+
+            for k, (curr_coverage, curr_mu_pwd, curr_mu_icd) in optimise_dict.items():
+                optimise_dict[k] = (curr_coverage, max_curr_mu_pwd-curr_mu_pwd, curr_mu_icd)
+
+            if params.optimise == 'high':
+                opt_cs, opt_fdr, opt_gam, opt_sol_index = sorted(optimise_dict.keys(), key=lambda _: (optimise_dict[_][1], optimise_dict[_][2], optimise_dict[_][0]))[-1]
+            elif params.optimise == 'intermediate':
+                opt_cs, opt_fdr, opt_gam, opt_sol_index = sorted(optimise_dict.keys(), key=lambda _: (optimise_dict[_][0], optimise_dict[_][1], optimise_dict[_][2]))[-1]
+
+            print ('CS = {}, FDR = {}, GAMMA = {}, Solution index = {}.'.format(opt_cs, opt_fdr, opt_gam, opt_sol_index))
+
+            opt_outfname = '{}_{}_cs{}_fdr{}_gam{}_sol{}{}_{}'.format(params.gam_method.lower(), params.hypo_test.lower(), str(opt_cs), str(opt_fdr), str(opt_gam), opt_sol_index, '_prior' if params.prior else '', treefname)
+            subprocess.call('cp tree_{}.tre tree_optimal_parameter_cs{}_fdr{}_gam{}_sol{}_{}.tre'.format(opt_outfname, str(opt_cs), str(opt_fdr), str(opt_gam), opt_sol_index, treefname), shell=True)
+            subprocess.call('cp cluster_{}.txt cluster_optimal_parameter_cs{}_fdr{}_gam{}_sol{}_{}.txt'.format(opt_outfname, str(opt_cs), str(opt_fdr), str(opt_gam), opt_sol_index, treefname), shell=True)
+
+            if params.pdf_tree:
+                subprocess.call('cp pdftree_{}.pdf pdftree_optimal_parameter_cs{}_fdr{}_gam{}_sol{}_{}.pdf'.format(opt_outfname, str(opt_cs), str(opt_fdr), str(opt_gam), opt_sol_index, treefname), shell=True)
+
+        else:
+            print ('\nWARNING: No optimising of input parameters required since only 1 parameter set was analysed.')
+
+    print ('\n...All parameter sets analysed.\n')
 
