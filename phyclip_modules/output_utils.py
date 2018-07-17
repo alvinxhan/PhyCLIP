@@ -22,6 +22,7 @@ class phyclip_output(object):
         curr_tree_string = self.tree_string
 
         with open('cluster_{}_{}.txt'.format(self.clean_up_status, self.outfname), 'w') as output:
+        #with open('cluster_{}.txt'.format(self.outfname), 'w') as output:
 
             output.write('CLUSTER\tTAXA\tSensitivity-induced (original cluster-node-id)\tSub-cluster subsumed into parent (original cluster-node-id)\r\n')
             for taxon, clusterid in self.taxon_to_clusterid.items():
@@ -45,6 +46,7 @@ class phyclip_output(object):
     def figtree_output(self, modified_tree_string):
 
         with open('tree_{}_{}.tre'.format(self.clean_up_status, self.outfname), 'w') as output:
+        #with open('tree_{}.tre'.format(self.outfname), 'w') as output:
             output.write('#NEXUS\r\nBegin taxon;\r\n\tDimensions ntax={};\r\n\t\tTaxlabels\r\n'.format(len(self.taxon_list)))
             for taxon in self.taxon_list:
                 if taxon in self.taxon_to_clusterid:
@@ -193,5 +195,5 @@ class phyclip_output(object):
             ts.aligned_header.add_face(header_face, lh_index)
 
         # render as pdf
-        output_tree.render('{}{}.pdf'.format('' if pc_input == False else 'prior_', self.outfname), tree_style=ts)
+        output_tree.render('pdftree_{}.pdf'.format(self.outfname), tree_style=ts)
 

@@ -1,113 +1,6 @@
 from __future__ import division
+from pathos.helpers import mp
 import numpy as np
-
-class inter_cluster_hytest(object):
-    '''
-    Hypothesis tests used to determine if the pairwise patristic distance distributions between two clusters are statistically distinct.
-
-    Attributes:
-         data1, data2 - SORTED lists/arrays of two distributions
-    '''
-
-    def __init__(self, data1=None, data2=None):
-        self.data1 = data1
-        self.data2 = data2
-
-    def hytest(self, method='kuiper'):
-        '''
-        Performs hypothesis testing based on method called
-
-        *Parameters*
-        method (str): hypothesis test to use, either 'kuiper' or 'ks'.
-
-        *Returns*
-        prob (float): p-value
-        '''
-
-        if method == 'kuiper':
-            prob = self._kuiper_2samp(self.data1, self.data2)
-        else:
-            prob = self._ks_2samp(self.data1, self.data2)
-
-        return prob
-
-    def _ks_2samp(self, data1, data2):
-        from numpy import asarray
-        from scipy.stats import kstwobign
-
-        data1, data2 = map(asarray, (data1, data2)) # change data list to array
-
-        n1 = len(data1) # number of elements in data1
-        n2 = len(data2) # number of elements in data2
-
-        #data1 = np.sort(data1) # sort data1 by ascending values
-        #data2 = np.sort(data2) # sort data2 by ascending values
-
-        data_all = np.concatenate([data1,data2]) # concatenate both data arrays and sort - this is basically the array of all possible values
-
-        cdf1 = np.searchsorted(data1,data_all,side='right')/n1
-        cdf2 = np.searchsorted(data2,data_all,side='right')/n2
-
-        d = np.max(np.absolute(cdf1-cdf2))
-        # Note: d absolute not signed distance
-        en = np.sqrt(n1*n2/float(n1+n2))
-
-        try:
-            prob = kstwobign.sf((en + 0.12 + 0.11 / en) * d)
-        except:
-            prob = 1.0
-        return prob
-
-    def _kuiper_2samp(self, data1, data2):
-        j1 = 0
-        j2 = 0
-
-        n1 = len(data1)  # number of elements in data1
-        n2 = len(data2)  # number of elements in data2
-        eff_n = np.sqrt((n1*n2)/(n1+n2))
-
-        fn1 = 0
-        fn2 = 0
-        d = 0
-
-        while j1 < n1 and j2 < n2:
-            d1 = data1[j1]
-            d2 = data2[j2]
-            if d1 <= d2:
-                j1 += 1
-                fn1 = j1/n1
-
-            if d2 <= d1:
-                j2 += 1
-                fn2 = j2/n2
-
-            dt = abs(fn2-fn1)
-            if dt > d:
-                d = dt
-
-        def kuiper_dist(q):
-            EPS1 = 0.001
-            EPS2 = 0.00000001
-            a2 = -2.0*q*q
-            sum = 0
-            termbf = 0
-            dist = 1
-
-            for j in xrange(1, 100000, 1):
-                term = 2.0*((4.0*j*j*q*q)-1)*np.exp(a2*j*j)
-                sum += term
-
-                if abs(term) <= EPS1*termbf or abs(term) <= EPS2*sum:
-                    dist = sum
-                    break
-
-                termbf = abs(term)
-            return dist
-
-        lam = (eff_n + 0.155 + 0.24/eff_n)*d
-        prob = kuiper_dist(lam)
-
-        return prob
 
 def weighted_high_median(a, wts):
     N = len(a)
@@ -263,6 +156,9 @@ def get_cluster_size_distribution(clusterid_to_taxa):
     return [i for j in [[clusterlen] * frequency for clusterlen, frequency in clusterlen_to_frequency.items()] for i in j]
 
 def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status, pc_input):
+
+    #def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, pc_input):
+
     """
     Summary stats of within- and inter-clade divergence
     """
@@ -311,15 +207,24 @@ def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepai
         except:
             sd_cluster_size = 'nan'
 
-        results = [total_clustered_count, total_taxa_count, total_clustered_count/total_taxa_count, len(clusterid_to_taxa),
+        coverage = total_clustered_count/total_taxa_count
+        mu_pwd = np.mean(mean_dist)
+        mu_icd = np.mean(intercluster_dist)
+
+        results = [total_clustered_count, total_taxa_count, coverage, len(clusterid_to_taxa),
                    np.mean(clusterlen_distribution), sd_cluster_size, median_cluster_size, mad_cluster_size, min(clusterlen_distribution), max(clusterlen_distribution),
-                   np.mean(mean_dist), sd_mean_dist, np.mean(median_dist), sd_median_dist, min(mean_dist), max(mean_dist),
-                   np.mean(intercluster_dist), sd_intercluster_dist, median_intercluster, mad_intercluster, min(intercluster_dist), max(intercluster_dist)]
+                   mu_pwd, sd_mean_dist, np.mean(median_dist), sd_median_dist, min(mean_dist), max(mean_dist),
+                   mu_icd, sd_intercluster_dist, median_intercluster, mad_intercluster, min(intercluster_dist), max(intercluster_dist)]
 
         output.write('{}\t{}\t{}\t{}\t'
                      '{}\t{}\t{}\t{}\t{}\t{}\t'
                      .format(treefname, min_cluster_size, fdr_cutoff, gamma,
                              hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status))
+
+        #output.write('{}\t{}\t{}\t{}\t'
+        #             '{}\t{}\t{}\t{}\t{}\t'
+        #             .format(treefname, min_cluster_size, fdr_cutoff, gamma,
+        #                     hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index))
 
         if pc_input == False:
             output.write('na\t')
@@ -329,3 +234,5 @@ def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepai
             output.write('{}\t'.format(len(set(prior_taxa)&set(clustered_taxa))/len(prior_taxa)))
 
         output.write('{}\r\n'.format('\t'.join(map(str, results))))
+
+    return (coverage, mu_pwd, mu_icd)

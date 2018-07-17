@@ -1,21 +1,30 @@
+from __future__ import division
 from copy import deepcopy as dc
+from pathos.helpers import mp
 import numpy as np
-import ete3
 import re
+import json
 import itertools
+import time
 
 def collapse_zero_branch_lengths(tree_object, retain_length_bound):
     '''
     Collapse nodes with zero branch lengths and reorder tree
     '''
+    no_node_collapse = 1
     for node in tree_object.traverse():
         if node.is_leaf():
             continue
-        elif node.dist < retain_length_bound:
+        elif node.dist <= retain_length_bound:
+            no_node_collapse = 0
             node.delete()
 
-    tree_object.ladderize()
-    return tree_object
+    if no_node_collapse == 1:
+        return False
+    else:
+        print no_node_collapse
+        tree_object.ladderize()
+        return tree_object
 
 def parse_newick_tree(tree_file):
 
@@ -31,66 +40,36 @@ def parse_newick_tree(tree_file):
 
     return ''.join(new_fhandle)
 
-def parse_treeinfo_file(treeinfo_file, hytest_method):
+def parse_treeinfo_file(treeinfo_file):
     '''
     treeinfo file parser
     '''
     print ('Reading Treeinfo file...')
-
-    leaf_dist_to_node = {}
-    leafpair_to_distance = {}
-    nodepair_to_pval = {}
-
     fhandle = open(treeinfo_file, 'rU').readlines()
-    for line in fhandle:
-        try:
-            leaf, n, dist = re.search('L([^,]+),N([^,]+),D([\d\.eE-]+)', line).group(1,2,3)
-            try:
-                leaf_dist_to_node[leaf][int(n)] = float(dist)
-            except:
-                leaf_dist_to_node[leaf] = {int(n):float(dist)}
-            continue
-        except:
-            pass
 
-        try:
-            leaf_x, leaf_y, dist = re.search('I([^,]+),J([^,]+),D([\d\.eE-]+)', line).group(1, 2, 3)
-            leafpair_to_distance[(leaf_x, leaf_y)] = leafpair_to_distance[(leaf_y, leaf_x)] = float(dist)
-            continue
-        except:
-            pass
+    leaf_dist_to_node = json.loads(fhandle[0])
+    for leaf, node_to_dist in leaf_dist_to_node.items():
+        for node, dist in node_to_dist.items():
+            leaf_dist_to_node[leaf][int(node)] = dist
+            del leaf_dist_to_node[leaf][node]
 
-        try:
-            i, j, ks_pval, kp_pval = re.search('I([^,]+),J([^,]+),KS([\d\.eE-]+),KP([\d\.eE-]+)', line).group(1, 2, 3, 4)
-            if hytest_method == 'Kuiper':
-                nodepair_to_pval[(int(i), int(j))] = float(kp_pval)
-            else:
-                nodepair_to_pval[(int(i), int(j))] = float(ks_pval)
-            continue
-        except:
-            pass
+    leafpair_to_distance = {tuple(element['key']):element['value'] for element in json.loads(fhandle[1])}
 
-        try:
-            i, j, test_type, pval = re.search('I([^,]+),J([^,]+),(KS|KP)([\d\.eE-]+)', line).group(1, 2, 3, 4)
-            if (test_type == 'KS' and hytest_method == 'Kuiper') or (test_type == 'KP' and hytest_method == 'KS'):
-                continue
-            else:
-                nodepair_to_pval[(int(i), int(j))] = float(pval)
-                continue
-        except:
-            pass
+    nodepair_to_pval = {tuple(element['key']):element['value'] for element in json.loads(fhandle[2])}
 
-    return leaf_dist_to_node, leafpair_to_distance, nodepair_to_pval
+    if len(leaf_dist_to_node) > 0 and len(leafpair_to_distance) > 0 and len(nodepair_to_pval) > 0:
+        return leaf_dist_to_node, leafpair_to_distance, nodepair_to_pval
+    else:
+        raise Exception('Missing information.')
 
 # class of modules to reassociate node and leaves by current min cluster size and within-cluster limit
 class node_leaves_reassociation(object):
 
-    def __init__(self, min_cluster_size=None, within_cluster_limit=None, gam_method=None, nodes_list=None, node_to_leaves=None, node_to_descendant_nodes=None, node_to_mean_pwdist=None, node_to_mean_child_dist2anc=None, node_to_parent_node=None, nodepair_to_dist=None, leaf_dist_to_node=None, leaf_to_ancestors=None):
+    def __init__(self, min_cluster_size=None, within_cluster_limit=None, gam_method=None, node_to_leaves=None, node_to_descendant_nodes=None, node_to_mean_pwdist=None, node_to_mean_child_dist2anc=None, node_to_parent_node=None, nodepair_to_dist=None, leaf_dist_to_node=None, leaf_to_ancestors=None):
 
         self.min_cluster_size = min_cluster_size
         self.within_cluster_limit = within_cluster_limit
         self.gam_method = gam_method
-        self.nodes_list = nodes_list
         self.node_to_leaves = node_to_leaves
         self.node_to_descendant_nodes = node_to_descendant_nodes
         self.node_to_mean_pwdist = node_to_mean_pwdist
@@ -113,28 +92,29 @@ class node_leaves_reassociation(object):
 
         return 2*(term_a-term_b)/(n_i*(n_i-1))
 
-    def remove_outlier_leaves(self, rol_leaves, main_node, rol_node_to_descendant_nodes, rol_node_to_leaves):
+    def remove_outlier_leaves(self, rol_leaves, main_node, rol_desc_nodes_of_node):
+
         rol_leaf_to_dist = {leaf:self.leaf_dist_to_node[leaf][main_node] for leaf in rol_leaves}
 
         med_leaf_dist_to_node = np.median(rol_leaf_to_dist.values())
-        if self.gam_method == 'Qn':
-            from phyclip_modules.stats_utils import qn
-            mad_leaf_dist_to_node = qn(rol_leaf_to_dist.values())
-        else:
-            mad_leaf_dist_to_node = np.median([abs(x-med_leaf_dist_to_node) for x in rol_leaf_to_dist.values() if x >= med_leaf_dist_to_node])
+
+        # only use qn
+        from phyclip_modules.stats_utils import qn
+        mad_leaf_dist_to_node = qn(rol_leaf_to_dist.values())
+
+        if mad_leaf_dist_to_node == 0.0:
+            return False
 
         rol_remaining_leaves = [leaf for leaf, dist in rol_leaf_to_dist.items() if dist <= (med_leaf_dist_to_node + (3*mad_leaf_dist_to_node))]
-        rol_leaves_to_dissociate = list(set(rol_node_to_leaves[main_node]) - set(rol_remaining_leaves))
+        # check if there are leaves to dissociate
+        rol_leaves_to_dissociate = list(set(rol_leaves) - set(rol_remaining_leaves))
 
-        if len(rol_leaves_to_dissociate) == 0 or len(rol_remaining_leaves) == 1:
+        if len(rol_leaves_to_dissociate) == 0 or len(rol_remaining_leaves) <= 1: # no leaves to dissociate or there is <= 1 leaf remaining s
             return False
         else:
             remaining_descendant_nodes_to_leaves = {}
             for leaf in rol_remaining_leaves:
-                try:
-                    desc_nodes_subtending_leaf = list(set(rol_node_to_descendant_nodes[main_node])&set(self.leaf_to_ancestors[leaf]))
-                except:
-                    desc_nodes_subtending_leaf = []
+                desc_nodes_subtending_leaf = list(set(rol_desc_nodes_of_node)&set(self.leaf_to_ancestors[leaf]))
 
                 for rdn in desc_nodes_subtending_leaf:
                     try:
@@ -146,8 +126,8 @@ class node_leaves_reassociation(object):
 
             try:
                 # find descendant nodes which fully subtend leaves to be removed
-                nodes_of_dissociated_leaves = list(set(rol_node_to_descendant_nodes[main_node])&set([x for y in [self.leaf_to_ancestors[leaf] for leaf in rol_leaves_to_dissociate] for x in y]))
-                rol_descendant_nodes_to_dissociate = [desc_node for desc_node in nodes_of_dissociated_leaves if set(rol_node_to_leaves[desc_node]) <= set(rol_leaves_to_dissociate)]
+                nodes_of_dissociated_leaves = list(set(rol_desc_nodes_of_node)&set([x for y in [self.leaf_to_ancestors[leaf] for leaf in rol_leaves_to_dissociate] for x in y]))
+                rol_descendant_nodes_to_dissociate = [desc_node for desc_node in nodes_of_dissociated_leaves if set(self.node_to_leaves[desc_node]) <= set(rol_leaves_to_dissociate)]
 
             except:
                 # no descendant nodes to main_node
@@ -164,7 +144,6 @@ class node_leaves_reassociation(object):
         for l_index in xrange(-1, len(sorted_leaves), 1):
             if l_index + 1 == len(sorted_leaves) - self.min_cluster_size:
                 return False
-                break
 
             remaining_leaves_to_node_dist = {}
             remaining_descendant_nodes_to_leaves = {}
@@ -202,37 +181,278 @@ class node_leaves_reassociation(object):
 
                 # return leaves to keep for node AND descendant nodes (which all of its subtended leaves are to be removed) to dissociate
                 return sorted_leaves[l_index+1:], old_descendant_nodes_to_dissociate, reduced_mean_pwdist
-                break
 
         return False
 
-    def nla_main(self):
+    """
+    # multi-proc manager function - for future updates (maybe?)
+    def nla_manager(self, nlist, _nlqueue, _ndnqueue, _nmpwdqueue):
+        sd_node_to_leaves = {}
+        sd_node_to_descendant_nodes = {}
+        sd_node_to_mean_pwdist = {}
 
-        # create deep copies to be edited
-        sd_node_to_leaves = dc(self.node_to_leaves)
-        sd_node_to_descendant_nodes = dc(self.node_to_descendant_nodes)
-        sd_node_to_mean_pwdist = {} # mean pairwise distance dictionary for current set of parameters
+        for node in nlist:
+            loo_self_binary = 0
 
-        # reassociate subtrees - starting from the root by level order
-        for node in self.nodes_list: # nodes_list already sorted
+            # !-- LEVEL 1: <= WCL -- #
+            if self.node_to_mean_pwdist[node] <= self.within_cluster_limit: # current node <= self.within_cluster_limit
+                # check that there are no outlying leaves
+                try:
+                    rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, self.node_to_descendant_nodes[node]) # trunk nodes
+                except:
+                    rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, []) # dead-end nodes
 
-            # current node <= self.within_cluster_limit
-            if self.node_to_mean_pwdist[node] <= self.within_cluster_limit:
-                # check there are no outlying leaves
-                rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, self.node_to_descendant_nodes, self.node_to_leaves)
-                if rol_output == False:
+                if rol_output == False: # no outlying leaves --> no changes
+                    sd_node_to_leaves[node] = self.node_to_leaves[node][:]
                     sd_node_to_mean_pwdist[node] = self.node_to_mean_pwdist[node]
-                else:
+                    try:
+                        sd_node_to_descendant_nodes[node] = self.node_to_descendant_nodes[node][:]
+                    except:
+                        pass
+                    continue
+                else: # remove outlying leaves
                     leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
                     # update node to remaining leaves
                     sd_node_to_leaves[node] = leaves_to_keep[:]
+                    # update mean pwd dist
+                    sd_node_to_mean_pwdist[node] = mean_pwdist
                     try:
                         # dissociate descendant nodes from node if any
-                        sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
+                        sd_node_to_descendant_nodes[node] = list(set(self.node_to_descendant_nodes[node][:]) - set(descendant_nodes_to_dissociate))
+                    except:
+                        pass
+                    continue
+
+            else: # current node > self.within_cluster_limit
+
+                # ! -- LEVEL 2: TRUNK NODE -- #
+                if node in self.node_to_descendant_nodes: # trunk node
+
+                    descendant_nodes_to_dissociate = []  # list to save nodes for dissociation
+
+                    # descendants nodes are already sorted by mean child-nodes' distance to node
+                    for desc_node in self.node_to_descendant_nodes[node]:
+                        if desc_node in descendant_nodes_to_dissociate:
+                            continue
+
+                        elif self.node_to_mean_child_dist2anc[desc_node][node] > self.within_cluster_limit:
+                            # append not only desc_node but all descendant nodes of desc_node itself
+                            descendant_nodes_to_dissociate.append(desc_node)
+                            try:
+                                descendant_nodes_to_dissociate = list(set(descendant_nodes_to_dissociate)|set(self.node_to_descendant_nodes[desc_node]))
+                            except:
+                                pass
+
+                    leaves_to_remove = list(set([x for y in [self.node_to_leaves[desc_node] for desc_node in descendant_nodes_to_dissociate] for x in y]))
+                    # remove all leaves from nodes that could be potentially dissociated (leaves in self.node_to_leaves[node] already reverse-sorted by distance to node)
+                    remaining_leaves = [leaf for leaf in self.node_to_leaves[node] if leaf not in leaves_to_remove]
+                    # perform leave-one-out-wcl approach
+                    loo_output = self.leave_one_out_leaf_reduction(remaining_leaves, node)
+
+                    # ! -- LEVEL 3: Leaves removed by LOO
+                    if loo_output != False:
+
+                        _leaves_to_keep, _descendant_nodes_to_dissociate, _mean_pwdist = loo_output
+
+                        descendant_nodes_to_dissociate = list(set(descendant_nodes_to_dissociate)|set(_descendant_nodes_to_dissociate)) # combine additional desc nodes to dissociate
+                        _desc_nodes_of_node = list(set(self.node_to_descendant_nodes[node][:])-set(descendant_nodes_to_dissociate))
+
+                        # now check that there are no outlying leaves by distance to node
+                        rol_output = self.remove_outlier_leaves(_leaves_to_keep, node, _desc_nodes_of_node)
+
+                        # ! -- LEVEL 3a: Outlying leaves present -- #
+                        if rol_output == False: # no outlying leaves
+                            # update results from LOO output
+                            sd_node_to_leaves[node] = _leaves_to_keep[:]
+                            # update mean pwd dist
+                            sd_node_to_mean_pwdist[node] = _mean_pwdist
+                            sd_node_to_descendant_nodes[node] = _desc_nodes_of_node[:]
+                            continue
+
+                        else: # outlying leaves by distance to node found
+                            leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
+                            # update node to remaining leaves
+                            sd_node_to_leaves[node] = leaves_to_keep[:]
+                            # dissociate descendant nodes from node
+                            sd_node_to_descendant_nodes[node] = list(set(_desc_nodes_of_node)-set(descendant_nodes_to_dissociate))
+                            # update mean pwd dist
+                            sd_node_to_mean_pwdist[node] = mean_pwdist
+                            continue
+                        # ! -- LEVEL 3a: Outlying leaves present -- #
+
+                    else: # leave-one-out-wcl approach did not remove any leaves
+                        loo_self_binary = 1
+                        # perform leave-one-out-wcl approach again, now based on self.node_to_leaves[node]
+                    # ! -- LEVEL 3: Leaves removed by LOO
+
+                else: # dead-end node with no descendants but > self.within_cluster_limit
+                    loo_self_binary = 1
+
+                # ! -- LEVEL 2: TRUNK NODE -- #
+
+            # !-- LEVEL 1: <= WCL -- #
+
+            if loo_self_binary == 1:
+
+                loo_output = self.leave_one_out_leaf_reduction(self.node_to_leaves[node], node)
+
+                # !-- Level 3b: LOO still doesn't remove any leaves -- #
+
+                if loo_output == False: # leave-one-out-wcl approach still did not remove any leaves
+
+                    # check for outlying leaves by distance to node
+                    try:
+                        rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, self.node_to_descendant_nodes[node])
+                    except:
+                        rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, [])
+
+                    # !-- Level 3b.1: ROL reports no outlying leaves -- #
+                    if rol_output == False: # no outlying leaves --> no changes
+                        sd_node_to_leaves[node] = self.node_to_leaves[node][:]
+                        sd_node_to_mean_pwdist[node] = self.node_to_mean_pwdist[node]
+                        try:
+                            sd_node_to_descendant_nodes[node] = self.node_to_descendant_nodes[node][:]
+                        except:
+                            pass
+                        continue
+
+                    else: # outlying leaves found
+                        leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
+                        # update node to remaining leaves
+                        sd_node_to_leaves[node] = leaves_to_keep[:]
+                        # dissociate descendant nodes from node
+                        try:
+                            sd_node_to_descendant_nodes[node] = list(set(self.node_to_descendant_nodes[node][:]) - set(descendant_nodes_to_dissociate))
+                        except:
+                            pass
+                        # update mean pwd dist
+                        sd_node_to_mean_pwdist[node] = mean_pwdist
+                        continue
+                    # !-- Level 3b.1: ROL reports no outlying leaves -- #
+
+                else: # leave-one-out-wcl approach removes leaves
+                    _leaves_to_keep, _descendant_nodes_to_dissociate, _mean_pwdist = loo_output
+                    try:
+                        _desc_nodes_of_node = list(set(self.node_to_descendant_nodes[node][:])-set(_descendant_nodes_to_dissociate))
+                    except:
+                        pass
+
+                    # now check that there are no outlying leaves by distance to node
+                    try:
+                        rol_output = self.remove_outlier_leaves(_leaves_to_keep, node, _desc_nodes_of_node)
+                    except:
+                        rol_output = self.remove_outlier_leaves(_leaves_to_keep, node, [])
+
+                    # !-- Level 3b.2: ROL reports no outlying leaves -- #
+                    if rol_output == False: # no outlying leaves
+                        # update results from LOO output
+                        sd_node_to_leaves[node] = _leaves_to_keep[:]
+                        # update mean pwd dist
+                        sd_node_to_mean_pwdist[node] = _mean_pwdist
+                        try:
+                            # dissociate descendant nodes from node if any
+                            sd_node_to_descendant_nodes[node] = _desc_nodes_of_node[:]
+                        except:
+                            pass
+                        continue
+
+                    else: # outlying leaves found
+                        leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
+                        # update node to remaining leaves
+                        sd_node_to_leaves[node] = leaves_to_keep[:]
+                        # dissociate descendant nodes from node
+                        try:
+                            sd_node_to_descendant_nodes[node] = list(set(_desc_nodes_of_node) - set(descendant_nodes_to_dissociate))
+                        except:
+                            pass
+                        # update mean pwd dist
+                        sd_node_to_mean_pwdist[node] = mean_pwdist
+                        continue
+                    # !-- Level 3b.1: ROL reports no outlying leaves -- #
+
+                # !-- Level 3b: LOO still doesn't remove any leaves -- #
+
+        # store to shared memory
+        _nlqueue.put(sd_node_to_leaves)
+        _ndnqueue.put(sd_node_to_descendant_nodes)
+        _nmpwdqueue.put(sd_node_to_mean_pwdist)
+    """
+
+    def nla_main(self):
+        """
+        from random import shuffle
+
+        start_time = time.time()
+
+        # multi-proc setup
+        manager = mp.Manager()
+        # shared memory
+        node_to_leaves_queue = manager.Queue()
+        node_to_descendant_nodes_queue = manager.Queue()
+        node_to_mean_pwdist_queue = manager.Queue()
+        # generate processes
+        processes = []
+
+        # split nodepair list into ncpu sets
+        shuffled_node_list = self.node_to_leaves.keys()[:]
+        shuffle(shuffled_node_list) # shuffle to make more multi-process more equitable
+
+        ncpu = mp.cpu_count()
+        increment = int(len(shuffled_node_list)/ncpu)
+        for p in xrange(ncpu):
+            if p == ncpu-1:
+                curr_node_list = shuffled_node_list[p*increment:]
+            else:
+                curr_node_list = shuffled_node_list[p*increment:(p*increment)+increment]
+
+            proc = mp.Process(target=self.nla_manager, args=(curr_node_list, node_to_leaves_queue, node_to_descendant_nodes_queue, node_to_mean_pwdist_queue))
+            processes.append(proc)
+            proc.start()
+
+        # collect results to dictionary
+        _node_to_leaves = {}
+        _node_to_descendant_nodes = {}
+        _node_to_mean_pwdist = {}
+        for p in xrange(len(processes)):
+            _node_to_leaves.update(node_to_leaves_queue.get())
+            _node_to_descendant_nodes.update(node_to_descendant_nodes_queue.get())
+            _node_to_mean_pwdist.update(node_to_mean_pwdist_queue.get())
+
+        # wait for all processes to end
+        for proc in processes:
+            proc.join()
+
+        multi_time = time.time()
+        """
+        # legacy single thread code here
+        # create deep copies to be edited
+        single_node_to_leaves = dc(self.node_to_leaves)
+        single_node_to_descendant_nodes = dc(self.node_to_descendant_nodes)
+        single_node_to_mean_pwdist = {} # mean pairwise distance dictionary for current set of parameters
+
+        for node in sorted(self.node_to_leaves.keys()):
+            # current node <= self.within_cluster_limit
+            if self.node_to_mean_pwdist[node] <= self.within_cluster_limit:
+                #print node, '*'
+                # check that there are no outlying leaves
+                try:
+                    rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, self.node_to_descendant_nodes[node])#, self.node_to_leaves)
+                except:
+                    rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, [])#, self.node_to_leaves)
+
+                if rol_output == False:
+                    single_node_to_mean_pwdist[node] = self.node_to_mean_pwdist[node]
+                else:
+                    leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
+                    # update node to remaining leaves
+                    single_node_to_leaves[node] = leaves_to_keep[:]
+                    try:
+                        # dissociate descendant nodes from node if any
+                        single_node_to_descendant_nodes[node] = list(set(single_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
                     except:
                         pass
                     # update mean pwd dist
-                    sd_node_to_mean_pwdist[node] = mean_pwdist
+                    single_node_to_mean_pwdist[node] = mean_pwdist
                 continue
 
             # current node > self.within_cluster_limit
@@ -250,46 +470,48 @@ class node_leaves_reassociation(object):
                             descendant_nodes_to_dissociate = list(set(descendant_nodes_to_dissociate)|set(self.node_to_descendant_nodes[desc_node]))
                         except:
                             pass
+                #print node, '**'
                 # !--- code con't below
             except:
+                #print node, '***'
                 # dead-end node with no descendants but > self.within_cluster_limit
                 loo_output = self.leave_one_out_leaf_reduction(self.node_to_leaves[node], node)
 
                 # no leaves to remove by leave-one-out-wcl approach
                 if loo_output == False:
                     # check there are no outlying leaves by distance to node
-                    rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, self.node_to_descendant_nodes, self.node_to_leaves)
+                    rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, [])#, self.node_to_leaves)
                     # no outlying leaves
                     if rol_output == False:
-                        sd_node_to_mean_pwdist[node] = self.node_to_mean_pwdist[node]
+                        single_node_to_mean_pwdist[node] = self.node_to_mean_pwdist[node]
                     # outlying leaves found
                     else:
                         leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
                         # update node to remaining leaves
-                        sd_node_to_leaves[node] = leaves_to_keep[:]
+                        single_node_to_leaves[node] = leaves_to_keep[:]
                         # update mean pwd dist
-                        sd_node_to_mean_pwdist[node] = mean_pwdist
+                        single_node_to_mean_pwdist[node] = mean_pwdist
 
                 # leave-one-out-wcl approach removes some leaves from dead-end node
                 else:
                     leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = loo_output
                     # update node_to_leaves as per output of leave-one-out-wcl approach first
-                    sd_node_to_leaves[node] = leaves_to_keep[:]
+                    single_node_to_leaves[node] = leaves_to_keep[:]
 
                     # check that there are no outlying leaves by distance to node
-                    rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes, sd_node_to_leaves)
+                    rol_output = self.remove_outlier_leaves(single_node_to_leaves[node], node, [])#, single_node_to_leaves)
 
                     # no outlying leaves
                     if rol_output == False:
                         # update mean_pwdist based on leave-one-out-wcl approach
-                        sd_node_to_mean_pwdist[node] = mean_pwdist
+                        single_node_to_mean_pwdist[node] = mean_pwdist
                     # outlying leaves to node found
                     else:
                         leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
                         # update node to remaining leaves
-                        sd_node_to_leaves[node] = leaves_to_keep[:]
+                        single_node_to_leaves[node] = leaves_to_keep[:]
                         # update mean pwd dist
-                        sd_node_to_mean_pwdist[node] = mean_pwdist
+                        single_node_to_mean_pwdist[node] = mean_pwdist
 
                 continue
 
@@ -297,7 +519,7 @@ class node_leaves_reassociation(object):
             leaves_to_remove = list(set([x for y in [self.node_to_leaves[desc_node] for desc_node in descendant_nodes_to_dissociate] for x in y]))
             # remove all leaves from nodes that could be potentially dissociated (leaves in self.node_to_leaves[node] already reverse-sorted by distance to node)
             remaining_leaves = [leaf for leaf in self.node_to_leaves[node] if leaf not in leaves_to_remove]
-
+            # perform leave-one-out-wcl approach
             loo_output = self.leave_one_out_leaf_reduction(remaining_leaves, node)
 
             # leave-one-out-wcl approach removes leaves
@@ -306,74 +528,98 @@ class node_leaves_reassociation(object):
                 leaves_to_keep, loo_descendant_nodes_to_dissociate, mean_pwdist = loo_output
                 # update as per output of leave-one-out-wcl approach
                 # update node to remaining leaves
-                sd_node_to_leaves[node] = leaves_to_keep[:]
+                single_node_to_leaves[node] = leaves_to_keep[:]
                 # dissociate descendant nodes from node
                 descendant_nodes_to_dissociate = list(set(descendant_nodes_to_dissociate)|set(loo_descendant_nodes_to_dissociate))
-                sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
+                single_node_to_descendant_nodes[node] = list(set(single_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
+
 
                 # now check that there are no outlying leaves by distance to node
-                rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes, sd_node_to_leaves)
+                rol_output = self.remove_outlier_leaves(single_node_to_leaves[node], node, single_node_to_descendant_nodes[node])#, single_node_to_leaves)
                 # no outlying leaves
                 if rol_output == False:
                     # update mean_pwdist from leave-one-out-wcl output
-                    sd_node_to_mean_pwdist[node] = mean_pwdist
+                    single_node_to_mean_pwdist[node] = mean_pwdist
                 # outlying leaves by distance to node found
                 else:
                     leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
                     # update node to remaining leaves
-                    sd_node_to_leaves[node] = leaves_to_keep[:]
+                    single_node_to_leaves[node] = leaves_to_keep[:]
                     # dissociate descendant nodes from node
-                    sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
+                    single_node_to_descendant_nodes[node] = list(set(single_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
                     # update mean pwd dist
-                    sd_node_to_mean_pwdist[node] = mean_pwdist
+                    single_node_to_mean_pwdist[node] = mean_pwdist
 
-            # leave-one-out-wcl approach did not remove any leaves -- THIS SECTION OF THE CODE MAY BE REDUNDANT --
+            # leave-one-out-wcl approach did not remove any leaves
             else:
                 # perform leave-one-out-wcl approach again, now based on self.node_to_leaves[node]
                 loo_output = self.leave_one_out_leaf_reduction(self.node_to_leaves[node], node)
+
                 # leave-one-out-wcl approach still did not remove any leaves
                 if loo_output == False:
                     # check for outlying leaves by distance to node
-                    rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, self.node_to_descendant_nodes, self.node_to_leaves)
+                    rol_output = self.remove_outlier_leaves(self.node_to_leaves[node], node, self.node_to_descendant_nodes[node])#, self.node_to_leaves)
                     # no outlying leaves
                     if rol_output == False:
-                        sd_node_to_mean_pwdist[node] = self.node_to_mean_pwdist[node]
+                        single_node_to_mean_pwdist[node] = self.node_to_mean_pwdist[node]
                     # outlying leaves found
                     else:
                         leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
                         # update node to remaining leaves
-                        sd_node_to_leaves[node] = leaves_to_keep[:]
+                        single_node_to_leaves[node] = leaves_to_keep[:]
                         # dissociate descendant nodes from node
-                        sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
+                        single_node_to_descendant_nodes[node] = list(set(single_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
                         # update mean pwd dist
-                        sd_node_to_mean_pwdist[node] = mean_pwdist
+                        single_node_to_mean_pwdist[node] = mean_pwdist
 
                 # leave-one-out-wcl approach removes leaves
                 else:
                     leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = loo_output
                     # update as per output of leave-one-out-wcl approach
                     # update node to remaining leaves
-                    sd_node_to_leaves[node] = leaves_to_keep[:]
+                    single_node_to_leaves[node] = leaves_to_keep[:]
                     # dissociate descendant nodes from node
-                    sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
+                    single_node_to_descendant_nodes[node] = list(set(single_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
 
                     # check that there are no outlying leaves by distance to node
-                    rol_output = self.remove_outlier_leaves(sd_node_to_leaves[node], node, sd_node_to_descendant_nodes, sd_node_to_leaves)
+                    rol_output = self.remove_outlier_leaves(single_node_to_leaves[node], node, single_node_to_descendant_nodes[node])#, single_node_to_leaves)
                     # no outlying leaves
                     if rol_output == False:
                         # this mean_pwdist is from loo_output
-                        sd_node_to_mean_pwdist[node] = mean_pwdist
+                        single_node_to_mean_pwdist[node] = mean_pwdist
                     # outlying leaves found
                     else:
                         leaves_to_keep, descendant_nodes_to_dissociate, mean_pwdist = rol_output
                         # update node to remaining leaves
-                        sd_node_to_leaves[node] = leaves_to_keep[:]
+                        single_node_to_leaves[node] = leaves_to_keep[:]
                         # dissociate descendant nodes from node
-                        sd_node_to_descendant_nodes[node] = list(set(sd_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
+                        single_node_to_descendant_nodes[node] = list(set(single_node_to_descendant_nodes[node])-set(descendant_nodes_to_dissociate))
                         # update mean pwd dist
-                        sd_node_to_mean_pwdist[node] = mean_pwdist
+                        single_node_to_mean_pwdist[node] = mean_pwdist
+        """
+        print time.time()-multi_time, multi_time-start_time
+        print ('testing mean pwd')
+        for k, v in _node_to_mean_pwdist.items():
+            '''if set(v) != set(single_node_to_descendant_nodes[k]):
+                print k, len(v), len(single_node_to_descendant_nodes[k])'''
+            if v != single_node_to_mean_pwdist[k]:
+                print k, v, single_node_to_mean_pwdist[k]
 
-        return sd_node_to_leaves, sd_node_to_descendant_nodes, sd_node_to_mean_pwdist
+        print ('testing desc nodes')
+        for k, v in _node_to_descendant_nodes.items():
+            if set(v) != set(single_node_to_descendant_nodes[k]):
+                print k, len(v), len(single_node_to_descendant_nodes[k])
+
+        print ('testing node to leaves')
+        for k, v in _node_to_leaves.items():
+            if set(v) != set(single_node_to_leaves[k]):
+                print k, len(v), len(single_node_to_leaves[k])
+
+        print _node_to_leaves == single_node_to_leaves
+        print _node_to_descendant_nodes == single_node_to_descendant_nodes
+        print _node_to_mean_pwdist == single_node_to_mean_pwdist"""
+        return single_node_to_leaves, single_node_to_descendant_nodes, single_node_to_mean_pwdist
+        #return _node_to_leaves, _node_to_descendant_nodes, _node_to_mean_pwdist
 
 # clean-up modules
 class clean_up_modules(object):
