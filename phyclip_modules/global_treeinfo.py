@@ -6,6 +6,7 @@ import math
 import json
 import numpy as np
 from pathos.helpers import mp
+from random import shuffle
 import time
 
 class inter_cluster_hytest(object):
@@ -120,7 +121,7 @@ class get_global_tree_info(object):
     '''
     Get global tree information
     '''
-    def __init__(self, tree_object=None, leaf_dist_to_node=None, leafpair_to_distance=None, nodepair_to_pval=None, treeinfo_fname=None, hypo_test_method=None, no_treeinfo=False):
+    def __init__(self, tree_object=None, leaf_dist_to_node=None, leafpair_to_distance=None, nodepair_to_pval=None, treeinfo_fname=None, hypo_test_method=None, no_treeinfo=False, cores=False):
         self.tree_object = tree_object
         self.leaf_dist_to_node = leaf_dist_to_node
         self.leafpair_to_distance = leafpair_to_distance
@@ -128,31 +129,38 @@ class get_global_tree_info(object):
         self.treeinfo_fname = treeinfo_fname
         self.hypo_test_method = hypo_test_method
         self.no_treeinfo = no_treeinfo
+        self.cores = cores
 
     #!-- multi-processing: get leaf distance to node for all leaves subtended  --#
-    def get_leaf_distance_to_node(self, n_index, inode, ldn_queue, ntl_queue):
-        lnode_array = inode.get_leaves()
+    def get_leaf_distance_to_node(self, n_list, inode_list, ldn_queue, ntl_queue):
 
-        currn_leaf_to_dist = {} # dictionary to store leaf to dist
+        sorted_leaves_to_node = {}
+        currn_leaf_to_dist = {}
 
-        # distance of leaf to each of its ancestral node
-        for leaf_node in lnode_array:
-            leaf = leaf_node.name
+        for _, n_index in enumerate(n_list):
+            inode = inode_list[_]
 
-            if self.treeinfo_file_given > 0:
+            # distance of leaf to each of its ancestral node
+            for leaf_node in inode.get_leaves():
+                leaf = leaf_node.name
+
+                if self.treeinfo_file_given > 0:
+                    try:
+                        # check that we have correctly recovered leaf dist to node from treeinfo file (this will be the check that the correct treeinfo file is being used)
+                        dist = self.leaf_dist_to_node[leaf][n_index]
+                    except:
+                        raise Exception('Mismatched leaf and node index found in TREEINFO file. Re-run without TREEINFO file.')
+                else:
+                    dist = leaf_node.get_distance(inode)
+
                 try:
-                    # check that we have correctly recovered leaf dist to node from treeinfo file (this will be the check that the correct treeinfo file is being used)
-                    dist = self.leaf_dist_to_node[leaf][n_index]
+                    currn_leaf_to_dist[leaf].append((n_index, dist))
                 except:
-                    raise Exception('Mismatched leaf and node index found in TREEINFO file. Re-run without TREEINFO file.')
+                    currn_leaf_to_dist[leaf] = [(n_index, dist)]
 
-            else:
-                dist = leaf_node.get_distance(inode)
+            # sort leaves by distance to node in reverse-order
+            sorted_leaves_to_node[n_index] = sorted(inode.get_leaf_names(), key=lambda leaf: currn_leaf_to_dist[leaf][-1], reverse=True)
 
-            currn_leaf_to_dist[leaf] = (n_index, dist)
-
-        # sort leaves by distance to node in reverse-order
-        sorted_leaves_to_node = {n_index:sorted(inode.get_leaf_names(), key=lambda leaf: currn_leaf_to_dist[leaf][-1], reverse=True)}
         # put result in result queue
         ldn_queue.put(currn_leaf_to_dist)
         ntl_queue.put(sorted_leaves_to_node)
@@ -210,8 +218,18 @@ class get_global_tree_info(object):
         # generate processes
         processes = []
 
-        for n, node in nindex_to_node.items():
-            proc = mp.Process(target=self.get_leaf_distance_to_node, args=(n, node, leaf_dist_to_node_queue, node_to_leaves_queue))
+        nindex_list = nindex_to_node.keys()[:]
+        shuffle(nindex_list) # shuffle to make multi-processes more equitable
+        increment = int(len(nindex_list)/self.cores)
+
+        for p in xrange(self.cores):
+            if p == self.cores-1:
+                curr_nindex_list = nindex_list[p*increment:]
+            else:
+                curr_nindex_list = nindex_list[p*increment:(p*increment)+increment]
+
+            #for n, node in nindex_to_node.items():
+            proc = mp.Process(target=self.get_leaf_distance_to_node, args=(curr_nindex_list, [nindex_to_node[n] for n in curr_nindex_list], leaf_dist_to_node_queue, node_to_leaves_queue))
             processes.append(proc)
             proc.start()
 
@@ -219,11 +237,12 @@ class get_global_tree_info(object):
         for p in xrange(len(processes)):
             node_to_leaves.update(node_to_leaves_queue.get())
 
-            for leaf_key, (n, distance) in leaf_dist_to_node_queue.get().items():
-                try:
-                    self.leaf_dist_to_node[leaf_key][n] = distance
-                except:
-                    self.leaf_dist_to_node[leaf_key] = {n:distance}
+            for leaf_key, list_value in leaf_dist_to_node_queue.get().items():
+                for (n, distance) in list_value:
+                    try:
+                        self.leaf_dist_to_node[leaf_key][n] = distance
+                    except:
+                        self.leaf_dist_to_node[leaf_key] = {n:distance}
 
         # wait for all processes to end
         for proc in processes:
@@ -363,7 +382,7 @@ class get_global_tree_info(object):
             print ('\nParsing all pairwise distances between leaves...')
 
             # multi-proc setup (pool)
-            pool = mp.Pool()
+            pool = mp.Pool(processes=self.cores)
             result = pool.map(get_pw_leaf_dist, list(itertools.combinations(self.tree_object.get_leaves(), 2)))
 
             for (leaf_x, leaf_y, dist) in result:
@@ -434,7 +453,6 @@ class get_global_tree_info(object):
         Perform all inter-clusters' hypotheses tests
         '''
         if self.treeinfo_file_given < 1:
-            from random import shuffle # shuffle nodepair_list
 
             print ('\nPerforming {} tests...'.format(hytest_method))
 
@@ -462,10 +480,9 @@ class get_global_tree_info(object):
             nodepair_list = list(itertools.combinations(node_to_leaves.keys(), 2))
             shuffle(nodepair_list) # shuffle to make more equitable
 
-            ncpu = mp.cpu_count()
-            increment = int(len(nodepair_list)/ncpu)
-            for p in xrange(ncpu):
-                if p == ncpu-1:
+            increment = int(len(nodepair_list)/self.cores)
+            for p in xrange(self.cores):
+                if p == self.cores-1:
                     curr_nodepair_list = nodepair_list[p*increment:]
                 else:
                     curr_nodepair_list = nodepair_list[p*increment:(p*increment)+increment]

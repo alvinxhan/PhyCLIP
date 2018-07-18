@@ -155,9 +155,9 @@ def get_cluster_size_distribution(clusterid_to_taxa):
 
     return [i for j in [[clusterlen] * frequency for clusterlen, frequency in clusterlen_to_frequency.items()] for i in j]
 
-def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status, pc_input):
+def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status, pc_input, sol_ver):
 
-    #def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, pc_input):
+    #def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, pc_input, sol_ver):
 
     """
     Summary stats of within- and inter-clade divergence
@@ -214,7 +214,7 @@ def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepai
         results = [total_clustered_count, total_taxa_count, coverage, len(clusterid_to_taxa),
                    np.mean(clusterlen_distribution), sd_cluster_size, median_cluster_size, mad_cluster_size, min(clusterlen_distribution), max(clusterlen_distribution),
                    mu_pwd, sd_mean_dist, np.mean(median_dist), sd_median_dist, min(mean_dist), max(mean_dist),
-                   mu_icd, sd_intercluster_dist, median_intercluster, mad_intercluster, min(intercluster_dist), max(intercluster_dist)]
+                   mu_icd, sd_intercluster_dist, median_intercluster, mad_intercluster, min(intercluster_dist), max(intercluster_dist), sol_ver]
 
         output.write('{}\t{}\t{}\t{}\t'
                      '{}\t{}\t{}\t{}\t{}\t{}\t'

@@ -43,9 +43,18 @@ if __name__ == '__main__':
     parser.add_argument('--solver_verbose', default=0, choices=[0, 1], type=int, help='ILP solver verbose (default: %(default)s)')
     parser.add_argument('--solver_check', action='store_true', help='Check available ILP solver(s) installed.')
 
+    parser.add_argument('--threads', type=int, help='Number of threads (default = all).')
+
     params = parser.parse_args()
 
     print ('{}\n\n{:^72}\n{:^72}\n\n{}'.format(''.join(['-']*72), 'Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)', 'Version 0.1', ''.join(['-']*72)))
+
+    # limit number of threads for parallelization
+    try:
+        ncpu = int(params.threads)
+    except:
+        from pathos.helpers import mp
+        ncpu = mp.cpu_count()
 
     # check solver availability
     available_solvers = []
@@ -234,6 +243,17 @@ if __name__ == '__main__':
         else:
             raise Exception('\nPrior analyses can only be performed using gurobi solver.\n')
 
+    # check gurobi version
+    if params.solver == 'gurobi':
+        from gurobipy import gurobi
+        solver_version = str(gurobi.version())
+    else:
+        # check glpk version
+        import subprocess
+        cmd = ['glpsol', '--version']
+        solver_version = re.search('v\d+\.\d+', subprocess.check_output(cmd)).group()
+    solver_version = '{}_{}'.format(params.solver, solver_version)
+
     # check if summary stats file already exist in current working directory
     statsfname = 'summary-stats_{}.txt'.format(inputfname)
     if statsfname in os.listdir(os.getcwd()):
@@ -251,13 +271,13 @@ if __name__ == '__main__':
                          '#_of_clustered_sequences\tTotal_no_of_sequences\t%_clustered\t#_of_clusters\t'
                          'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
                          'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
-                         'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
+                         'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\tsolver(version)\n')
             """
             output.write('Treefile\tCS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tPrior_taxa_clustered(%)\t'
                          '#_of_clustered_sequences\tTotal_no_of_sequences\t%_clustered\t#_of_clusters\t'
                         'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
                         'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
-                        'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
+                        'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\tsolver(version)\n')
             """
 
     # --- GLOBAL TREE INFORMATION --- #
@@ -298,7 +318,7 @@ if __name__ == '__main__':
                         print ('\nWARNING: Invalid treeinfo file in current working directory. Overwriting...')
                         pass
 
-    global_tree_info_obj = get_global_tree_info(tree, global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval, params.treeinfo, params.hypo_test, params.no_treeinfo)
+    global_tree_info_obj = get_global_tree_info(tree, global_leaf_dist_to_node, global_leafpair_to_distance, global_nodepair_to_pval, params.treeinfo, params.hypo_test, params.no_treeinfo, ncpu)
 
     global_tree_string, global_node_to_leaves, global_nindex_to_node, global_node_to_nindex, global_leaf_dist_to_node, global_nodepair_to_dist, global_node_to_parent_node, global_node_to_mean_child_dist2root = global_tree_info_obj.node_indexing()
 
@@ -424,7 +444,7 @@ if __name__ == '__main__':
             # get clusterlen distribution
             pre_clean_up_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa)
 
-            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, pre_clean_up_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'pre-clean', prior_input)
+            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, pre_clean_up_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'pre-clean', prior_input, solver_version)
 
             # ! --- print pre-clean up results end --- !#
 
@@ -464,8 +484,8 @@ if __name__ == '__main__':
             output_obj.figtree_output(curr_modified_tree_string)
 
             # append to summary stats output file
-            curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean', prior_input)
-            #curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, prior_input)
+            curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean', prior_input, solver_version)
+            #curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, prior_input, solver_version)
 
             # optimise
             if params.optimise:
