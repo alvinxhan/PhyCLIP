@@ -22,11 +22,13 @@ To simplify the installation process, we highly reccomend that you use Anaconda,
 
 PhyCLIP depends on several Python libraries: 
 * numpy, scipy, statsmodels  (mathematical/statistical operations)
+* pathos (multiprocessing)
 * ete3 (parsing phylogenetic trees) 
 
 To install the dependencies, go to Terminal (Mac/Linux) or Command/Anaconda Prompt (Windows): 
 ```
 $ conda install -c etetoolkit ete3
+$ conda install -c conda-forge pathos
 $ conda install numpy scipy statsmodels
 
 ```
@@ -34,7 +36,7 @@ $ conda install numpy scipy statsmodels
 Alternatively, if you are using PyPi:
 ```
 $ pip install ete3
-$ pip install numpy scipy statsmodels
+$ pip install numpy scipy statsmodels pathos
 ```
 
 ### Prerequisite: ILP solver 
