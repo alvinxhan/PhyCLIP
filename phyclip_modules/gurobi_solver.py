@@ -4,7 +4,7 @@ import itertools
 import numpy as np
 import time
 
-def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_to_qval, node_to_mean_pwdist, within_cluster_limit, min_cluster_size, fdr_cutoff, prior, pc_weights, verbose):
+def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_to_qval, node_to_mean_pwdist, within_cluster_limit, min_cluster_size, fdr_cutoff, prior, pc_weights, verbose, model_identifier):
     print ('Solving with gurobi...')
 
     # set up indices
@@ -45,7 +45,12 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
             p_to_nodeij_permutations = {p:[(yi, yj) for (yi, yj) in itertools.permutations(node_to_prior_leaves.keys(), 2)] for p, node_to_prior_leaves in p_to_nodes_to_prior_leaves.items()}
 
     # model
-    model = Model('NewModel')
+    model = Model('NewModel_{}'.format(model_identifier))
+
+    # set method
+    model.Params.Seed = 666 # Fixed seed to maintain same search path
+    model.Params.Method = 1 # always solve by dual simplex (avoid numerical issues)
+    model.Params.NumericFocus = 3 # greatest care on numerics (suffer on speed)
 
     # verbose
     model.Params.LogToConsole = verbose
@@ -85,14 +90,18 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
 
     # inter-cluster constraint
     for (n, m) in itertools.combinations(list_of_ancestral_node, 2):
-        model.addConstr((2 - node_decision[n] - node_decision[m])*2 >= nodepair_to_qval[(n,m)] - fdr_cutoff)
+        model.addConstr((2 - node_decision[n] - node_decision[m])*2 >= nodepair_to_qval[(n,m)]-fdr_cutoff)
 
-    longest_mean_pwdist = max(node_to_mean_pwdist.values())
+    bigM = 999
+    # check that bigM is > min_cluster_size
+    if bigM <= min_cluster_size:
+        bigM = min_cluster_size+1
+
     for n in list_of_ancestral_node:
         # cluster size constraint
-        model.addConstr((min_cluster_size+1)*(node_decision[n]-1) + min_cluster_size <= quicksum(leaf_decision[(leaf, n)] for leaf in node_to_leaves[n]))
+        model.addConstr(bigM*(node_decision[n]-1) + min_cluster_size <= quicksum(leaf_decision[(leaf, n)] for leaf in node_to_leaves[n]))
         # within-cluster constraint
-        model.addConstr((longest_mean_pwdist+1)*(node_decision[n]-1) <= within_cluster_limit - node_to_mean_pwdist[n])
+        model.addConstr(bigM*(node_decision[n]-1) <= within_cluster_limit - node_to_mean_pwdist[n])
 
     # prior
     if prior:
@@ -136,7 +145,7 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
     model.optimize()
 
     if model.status == GRB.Status.OPTIMAL:
-        optimal_solutions = []
+        optimal_solutions = {}
 
         intfeastol = model.Params.IntFeasTol
 
@@ -182,12 +191,13 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
                         taxon_to_clusterid[leaf] = n
 
                 if fail_integral == 0:
-                    optimal_solutions.append(taxon_to_clusterid)
+                    optimal_solutions[sol_index] = taxon_to_clusterid
+                else:
+                    # failed integrality
+                    optimal_solutions[sol_index] = False
 
         # save to solution only if len(optimal_solutions) > 0
         if len(optimal_solutions) > 0:
             return optimal_solutions
-        else:
-            return 'na'
     else:
         return 'na'

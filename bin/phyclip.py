@@ -5,6 +5,7 @@ import ete3
 import re
 import os
 import itertools
+import subprocess
 import numpy as np
 
 from phyclip_modules.stats_utils import qn, multiple_testing_correction, summary_stats, get_cluster_size_distribution
@@ -251,12 +252,13 @@ if __name__ == '__main__':
                          'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
                          'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
                          'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
-
-            #output.write('Treefile\tCS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tPrior_taxa_clustered(%)\t'
-            #             '#_of_clustered_sequences\tTotal_no_of_sequences\t%_clustered\t#_of_clusters\t'
-            #            'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
-            #            'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
-            #            'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
+            """
+            output.write('Treefile\tCS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tPrior_taxa_clustered(%)\t'
+                         '#_of_clustered_sequences\tTotal_no_of_sequences\t%_clustered\t#_of_clusters\t'
+                        'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
+                        'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
+                        'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\n')
+            """
 
     # --- GLOBAL TREE INFORMATION --- #
     print ('\nGetting tree information...')
@@ -313,7 +315,7 @@ if __name__ == '__main__':
 
     ### --- GLOBAL TREE INFORMATION --- ###
 
-    gam_to_reassociation_memory = {} # memory of reassociated nodes/leaves for repeated (cs, gam) set
+    csgam_to_reassociation_memory = {} # memory of reassociated nodes/leaves for repeated (cs, gam) set
 
     # Start runs
     print ('\nStarting runs...')
@@ -325,8 +327,8 @@ if __name__ == '__main__':
         # current within-cluster limit
         curr_wcl = med_x + (gam * mad_x)
 
-        # level-order sorted list of nodes with leaves >= cs
-        #curr_list_of_ancestral_node = sorted([node for node, leaves in global_node_to_leaves.items() if len(leaves) >= cs])
+        # level-order sorted list of nodes with leaves >= cs (only reassociate such nodes)
+        curr_list_of_ancestral_node = sorted([node for node, leaves in global_node_to_leaves.items() if len(leaves) >= cs])
 
         # reassociate subtrees and leaves based on curr_wcl
         print ('\nReassociating subtrees/leaves...')
@@ -334,29 +336,27 @@ if __name__ == '__main__':
 
         # if (cs, gam) set is repeated, check if we have performed reassociation analyses before to speed up runs
         try:
-            #curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = gam_to_reassociation_memory[(cs, gam)]
-            curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = gam_to_reassociation_memory[gam]
+            curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = csgam_to_reassociation_memory[(cs, gam)]
         except:
-            #nla_object = node_leaves_reassociation(cs, curr_wcl, params.gam_method, curr_list_of_ancestral_node, global_node_to_leaves, global_node_to_descendant_nodes, global_node_to_mean_pwdist, global_node_to_mean_child_dist2anc, global_node_to_parent_node, global_nodepair_to_dist, global_leaf_dist_to_node, global_leaf_to_ancestors)
-
-            nla_object = node_leaves_reassociation(cs, curr_wcl, params.gam_method, global_node_to_leaves, global_node_to_descendant_nodes, global_node_to_mean_pwdist, global_node_to_mean_child_dist2anc, global_node_to_parent_node, global_nodepair_to_dist, global_leaf_dist_to_node, global_leaf_to_ancestors)
+            nla_object = node_leaves_reassociation(cs, curr_wcl, params.gam_method, curr_list_of_ancestral_node, global_node_to_leaves, global_node_to_descendant_nodes, global_node_to_mean_pwdist, global_node_to_mean_child_dist2anc, global_node_to_parent_node, global_nodepair_to_dist, global_leaf_dist_to_node, global_leaf_to_ancestors)
 
             curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = nla_object.nla_main()
 
+            for node, leaves in curr_node_to_leaves.items():
+                # filter by cs
+                if len(leaves) < cs:
+                    del curr_node_to_leaves[node]
+                    continue
+
             # save to memory to speed up subsequent runs with the same cs/gam parameter set
-            gam_to_reassociation_memory[gam] = [curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist]
+            csgam_to_reassociation_memory[(cs, gam)] = [curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist]
 
-        # update pairwise distance dictionaries/nodes' ancestry relations for cs
-        print('Updating tree info...')
-        for node, leaves in curr_node_to_leaves.items():
-            if len(leaves) < cs:
-                del curr_node_to_leaves[node]
-                continue
-
-        curr_list_of_ancestral_node = curr_node_to_leaves.keys()[:]
+        # update pairwise distance dictionaries/nodes' ancestry relations
+        print ('Updating tree info...')
         curr_leaves = [x for y in curr_node_to_leaves.values() for x in y]
+        curr_list_of_ancestral_node = curr_node_to_leaves.keys()[:]
         curr_node_to_descendant_nodes = {k:list(set(v)&set(curr_list_of_ancestral_node)) for k,v in curr_node_to_descendant_nodes.items() if k in curr_list_of_ancestral_node and len(v) > 0}
-        curr_node_to_mean_pwdist = {k:v for k,v in curr_node_to_mean_pwdist.items() if k in curr_list_of_ancestral_node}
+        #curr_node_to_mean_pwdist = {k:v for k,v in curr_node_to_mean_pwdist.items() if k in curr_list_of_ancestral_node}
 
         # multiple-testing correction using BH procedure could be done without filtering for cs (pre) or post filtering for cs (post)
         if params.preQ == 1:
@@ -375,7 +375,7 @@ if __name__ == '__main__':
         if params.solver == 'gurobi':
             from phyclip_modules.gurobi_solver import gurobi_solver
             #try:
-            all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose)
+            all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose, p_index)
             #except:
             #raise Exception('\nUnable to solve ILP model using gurobi. You may try to use other available solvers by the --solver flag.\n')
         else:
@@ -389,14 +389,19 @@ if __name__ == '__main__':
             # continue to next parameter set if no solution
             with open(statsfname, 'a') as output:
                 output.write('{}\t{}\t{}\t{}\tNO OPTIMAL SOLUTION FOUND.\n'.format(treefname, cs, fdr, gam))
-                print ('\nNO OPTIMAL SOLUTION FOUND.')
             continue # continue to next parameter set
 
         elif len(all_solutions) > 1:
             print ('\nMultiple ({}) solutions found..'.format(len(all_solutions)))
 
         # analyse solution and print outputs
-        for sol_index, curr_taxon_to_clusterid in enumerate(all_solutions):
+        for sol_index, curr_taxon_to_clusterid in all_solutions.items():
+            # failed integrality
+            if curr_taxon_to_clusterid == False:
+                with open(statsfname, 'a') as output:
+                    output.write('{}\t{}\t{}\t{}\tNO OPTIMAL SOLUTION FOUND (SOLUTION-INDEX: {}, FAILED INTEGRALITY).\n'.format(treefname, cs, fdr, gam, sol_index))
+                continue
+
             curr_outfname = '{}_{}_cs{}_fdr{}_gam{}_sol{}{}_{}'.format(params.gam_method.lower(), params.hypo_test.lower(), str(cs), str(fdr), str(gam), sol_index, '_prior' if params.prior else '', treefname)
             curr_clusterid_to_taxa = {}
             for taxon, clusterid in curr_taxon_to_clusterid.items():

@@ -89,7 +89,7 @@ def glpk_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_to_
             if int(output_bin) == 1:
                 taxon_to_clusterid[leaf] = int(node)
 
-        return [taxon_to_clusterid]
+        return {0:[taxon_to_clusterid]}
 
     except:
         # remove temporary files
