@@ -51,6 +51,8 @@ Furthermore, as with any other linear programming problems, it is possible to ob
 
 
 #### Gurobi
+**IMPORTANT: Take note of the version of Gurobi you are using (printed on summary-stats_*.txt file, see Output files)**. Gurobi is updated periodically to enhance solver performance. Correspondingly, we do find minor changes to PhyCLIP's clustering results in some cases as a result of Gurobi updates.
+
 The easiest way to install Gurobi is via the Anaconda platform:
 
 1. Make sure you have Anaconda for Python 2.7 installed (see above). 
@@ -108,57 +110,76 @@ You can use programs such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/
 ### Running phyclip.py
 
 ```
-usage: phyclip.py [-h] -i INPUT_FILE [--treeinfo TREEINFO]
+usage: phyclip.py [-h] -i INPUT_FILE [--treeinfo TREEINFO] [--no_treeinfo]
+                  [--optimise {intermediate,high}] [--prior PRIOR]
+                  [--prior_weights PRIOR_WEIGHTS] [--pdf_tree]
                   [--collapse_zero_branch_lengths {0,1}]
                   [--equivalent_zero_length EQUIVALENT_ZERO_LENGTH]
-                  [--gam_method {MAD,Qn}] [--hypo_test {Kuiper,KolSmi}]
+                  [--gam_method {mad,qn}] [--hypo_test {kuiper,kolsmi}]
                   [--preQ {0,1}]
                   [--subsume_sensitivity_induced_clusters {0,1}]
                   [--sensitivity_percentile SENSITIVITY_PERCENTILE]
                   [--subsume_subclusters {0,1}] [--solver {glpk,gurobi}]
                   [--solver_verbose {0,1}] [--solver_check]
+                  [--threads THREADS]
 
 Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1
 
 optional arguments:
   -h, --help            show this help message and exit
   -i INPUT_FILE, --input_file INPUT_FILE
-                        Input file.
-  --treeinfo TREEINFO   Tree information file generated from previous PhyCLIP
-                        run.
+                        Input file. See manual for format details.
+  --treeinfo TREEINFO   *_treeinfo.txt file generated from PREVIOUS PhyCLIP
+                        run of the SAME phylogenetic tree.
+  --no_treeinfo         Stop PhyCLIP from generating *_treeinfo.txt file.
+  --optimise {intermediate,high}
+                        PhyCLIP automatically searches for the clustering
+                        result from the OPTIMAL input parameter set. See
+                        documentation for details. Must have >1 input
+                        parameter set in input file.
+  --prior PRIOR         Prior information on clustered taxa. File format same
+                        as PhyCLIP cluster text file output (i.e. CLUSTER-
+                        ID{tab}SEQUENCE-NAME). Only works with gurobi solver,
+                        no support for glpk.
+  --prior_weights PRIOR_WEIGHTS
+                        Weights on importance/confidence between prior
+                        clusters to remain clustered together. File format:
+                        CLUSTER-ID{tab}INT/FLOAT_WEIGHT{\newline}. Equal
+                        weights will be assumed if none is given.
+  --pdf_tree            PDF tree output annotated with cluster results.
   --collapse_zero_branch_lengths {0,1}
-                        Collapse nodes with zero branch lengths of tree prior
-                        to running PhyCLIP (default = 0).
+                        Collapse internal nodes with zero branch lengths of
+                        tree before running PhyCLIP (default = 0).
   --equivalent_zero_length EQUIVALENT_ZERO_LENGTH
                         Maximum branch length to be rounded to zero if the
                         --collapse_zero_branch_lengths flag is passed
-                        (advanced option, default = 1e-07).
-  --gam_method {MAD,Qn}
+                        (advanced option, default = 1e-06).
+  --gam_method {mad,qn}
                         Method to estimate robust dispersion measure (default
-                        = Qn).
-  --hypo_test {Kuiper,KolSmi}
+                        = qn).
+  --hypo_test {kuiper,kolsmi}
                         Hypothesis test to use for statistical differentiation
-                        of distance distributions (default = Kuiper).
+                        of distance distributions (default = kuiper).
   --preQ {0,1}          Perform Benjamini-Hochberg corrections of p-values
                         BEFORE filtering nodes that are < minimum cluster size
                         (advanced option, default = 0).
   --subsume_sensitivity_induced_clusters {0,1}
                         Subsume cluster-size sensitivity-induced clusters into
-                        parent cluster (advanced option, default = 1).
+                        parent cluster (default = 1).
   --sensitivity_percentile SENSITIVITY_PERCENTILE
                         Percentile of cluster size distribution under which a
                         cluster is considered to be sensitivity-induced
                         (advanced option, default = 25%).
   --subsume_subclusters {0,1}
                         Subsume sub-clusters into their respective parent
-                        clusters (advanced option, default = 0).
+                        clusters (default = 0).
   --solver {glpk,gurobi}
                         Preferred ILP solver IF more than one solvers are
                         available (default: gurobi).
   --solver_verbose {0,1}
                         ILP solver verbose (default: 0)
   --solver_check        Check available ILP solver(s) installed.
-
+  --threads THREADS     Number of threads (default = all).
 ```
 
 For example, running phyclip.py by the default settings: 
