@@ -372,21 +372,55 @@ class get_global_tree_info(object):
         '''
 
         #! -- multiprocessing: calculate pairwise leaf distance -- #
-        def get_pw_leaf_dist(leafpair):
-            x, y = leafpair
-            return x.name, y.name, x.get_distance(y)
+        def get_pw_leaf_dist(lp_list, queue):
+            lp_to_dist = {}
+            for (x, y) in lp_list:
+                lp_to_dist[(x.name, y.name)] = lp_to_dist[(y.name, x.name)] = x.get_distance(y)
+
+            queue.put(lp_to_dist)
         # ! -- multiprocessing: calculate pairwise leaf distance -- #
 
         # get pairwise sequence patristic distance
         if self.treeinfo_file_given < 1:
             print ('\nParsing all pairwise distances between leaves...')
 
+            """
             # multi-proc setup (pool)
             pool = mp.Pool(processes=self.cores)
             result = pool.map(get_pw_leaf_dist, list(itertools.combinations(self.tree_object.get_leaves(), 2)))
 
             for (leaf_x, leaf_y, dist) in result:
                 self.leafpair_to_distance[(leaf_x, leaf_y)] = self.leafpair_to_distance[(leaf_y, leaf_x)] = dist
+            """
+
+            # multi-proc setup
+            manager = mp.Manager()
+            # shared memory
+            leafpair_to_distance_queue = manager.Queue()
+            # generate processes
+            processes = []
+
+            leafpair_list = list(itertools.combinations(self.tree_object.get_leaves(), 2))
+            increment = int(len(leafpair_list)/self.cores)
+
+            for p in xrange(self.cores):
+                if p == self.cores-1:
+                    curr_leafpair_list = leafpair_list[p*increment:]
+                else:
+                    curr_leafpair_list = leafpair_list[p*increment:(p*increment)+increment]
+
+                #for n, node in nindex_to_node.items():
+                proc = mp.Process(target=get_pw_leaf_dist, args=(curr_leafpair_list, leafpair_to_distance_queue))
+                processes.append(proc)
+                proc.start()
+
+            # collect results to dictionary
+            for p in xrange(len(processes)):
+                self.leafpair_to_distance.update(leafpair_to_distance_queue.get())
+
+            # wait for all processes to end
+            for proc in processes:
+                proc.join()
 
             if self.no_treeinfo == False:
                 print ('Writing to treeinfo file...')
