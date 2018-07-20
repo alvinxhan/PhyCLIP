@@ -483,15 +483,15 @@ class get_global_tree_info(object):
         return self.leafpair_to_distance, node_to_pwdist, node_to_mean_pwdist, node_to_ancestral_nodes, node_to_descendant_nodes, leaf_to_ancestors, node_to_mean_child_dist2anc
 
     # worker
-    def get_interclus_pval(self, np_list, ntl_dict, ntan_dict, ntpwd_dict, q):
+    def get_interclus_pval(self, method, np_list, ntl_dict, ntan_dict, ntpwd_dict, q):
         currp_np_to_pval = {}
         for (i,j) in np_list:
             if (j in ntan_dict and i in ntan_dict[j]) or (i in ntan_dict and j in ntan_dict[i]):
-                pval = inter_cluster_hytest(ntpwd_dict[i], ntpwd_dict[j]).hytest(hytest_method)
+                pval = inter_cluster_hytest(ntpwd_dict[i], ntpwd_dict[j]).hytest(method)
             else:
                 ij_pwdist = sorted([self.leafpair_to_distance[(x, y)] for x, y in itertools.combinations(list(set(ntl_dict[i])|set(ntl_dict[j])), 2)])
                 # take the conservative (max) p-value comparing node i/j individually to i+j
-                pval = max([inter_cluster_hytest(ntpwd_dict[i], ij_pwdist).hytest(hytest_method), inter_cluster_hytest(ntpwd_dict[j], ij_pwdist).hytest(hytest_method)])
+                pval = max([inter_cluster_hytest(ntpwd_dict[i], ij_pwdist).hytest(method), inter_cluster_hytest(ntpwd_dict[j], ij_pwdist).hytest(method)])
             currp_np_to_pval[(i,j)] = pval
         q.put(currp_np_to_pval)
 
@@ -533,7 +533,7 @@ class get_global_tree_info(object):
                 else:
                     curr_nodepair_list = nodepair_list[p*increment:(p*increment)+increment]
 
-                proc = mp.Process(target=self.get_interclus_pval, args=(curr_nodepair_list, node_to_leaves_shared, node_to_ancestral_nodes_shared, node_to_pwdist_shared, queue))
+                proc = mp.Process(target=self.get_interclus_pval, args=(curr_nodepair_list, hytest_method, node_to_leaves_shared, node_to_ancestral_nodes_shared, node_to_pwdist_shared, queue))
                 processes.append(proc)
                 proc.start()
 
