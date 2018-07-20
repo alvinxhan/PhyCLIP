@@ -324,7 +324,7 @@ if __name__ == '__main__':
 
     global_leafpair_to_distance, global_node_to_pwdist, global_node_to_mean_pwdist, global_node_to_ancestral_nodes, global_node_to_descendant_nodes, global_leaf_to_ancestors, global_node_to_mean_child_dist2anc = global_tree_info_obj.pwdist_dist_and_ancestral_trace(global_node_to_leaves, global_nindex_to_node, global_node_to_nindex, global_node_to_mean_child_dist2root, global_nodepair_to_dist)
 
-    global_nodepair_to_pval = global_tree_info_obj.get_global_pval(params.hypo_test, global_node_to_leaves, global_node_to_ancestral_nodes, global_node_to_pwdist, global_leafpair_to_distance)
+    global_nodepair_to_pval = global_tree_info_obj.get_global_pval(params.hypo_test, global_node_to_leaves, global_node_to_ancestral_nodes, global_node_to_pwdist)
 
     # pre-calculation for within-cluster limit
     med_x = np.median(global_node_to_mean_pwdist.values())
