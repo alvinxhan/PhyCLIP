@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_to_qval, node_to_mean_pwdist, within_cluster_limit, min_cluster_size, fdr_cutoff, prior, pc_weights, verbose, model_identifier):
-    print ('Solving with gurobi...')
+    print ('Solving with gurobi {}...'.format(gurobi.version()))
 
     # set up indices
     if verbose == 1:
