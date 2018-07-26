@@ -482,31 +482,28 @@ class get_global_tree_info(object):
 
         return self.leafpair_to_distance, node_to_pwdist, node_to_mean_pwdist, node_to_ancestral_nodes, node_to_descendant_nodes, leaf_to_ancestors, node_to_mean_child_dist2anc
 
-    # worker
-    def get_interclus_pval(self, np_list, method, ntl_dict, ntan_dict, ntpwd_dict, q):
-        currp_np_to_pval = {}
-        for (i,j) in np_list:
-            if (ntan_dict[j] != False and i in list(ntan_dict[j])) or (ntan_dict[i] != False and j in list(ntan_dict[i])):
-                pval = inter_cluster_hytest(list(ntpwd_dict[i]), list(ntpwd_dict[j])).hytest(method)
-            else:
-                ij_pwdist = sorted([self.leafpair_to_distance[(x, y)] for x, y in itertools.combinations(list(set(ntl_dict[i])|set(ntl_dict[j])), 2)])
-                # take the conservative (max) p-value comparing node i/j individually to i+j
-                pval = max([inter_cluster_hytest(list(ntpwd_dict[i]), ij_pwdist).hytest(method), inter_cluster_hytest(list(ntpwd_dict[j]), ij_pwdist).hytest(method)])
-            currp_np_to_pval[(i,j)] = pval
-        q.put(currp_np_to_pval)
-
     def get_global_pval(self, hytest_method, node_to_leaves, node_to_ancestral_nodes, node_to_pwdist): #, leafpair_to_distance):
         '''
         Perform all inter-clusters' hypotheses tests
         '''
         if self.treeinfo_file_given < 1:
-            import os
-            from ctypes import c_char_p, set_conversion_mode
-            # change ctype object conversion rules for windows operating systems
-            if os.name == 'nt':
-                from ctypes import set_conversion_mode
-                set_conversion_mode('mbcs', 'ignore')
-                print ('Windows')
+            from ctypes import c_char_p
+
+            # global
+            lpd = self.leafpair_to_distance
+
+            # worker
+            def get_interclus_pval(np_list, method, ntl_dict, ntan_dict, ntpwd_dict, q):
+                currp_np_to_pval = {}
+                for (i,j) in np_list:
+                    if (ntan_dict[j] != False and i in list(ntan_dict[j])) or (ntan_dict[i] != False and j in list(ntan_dict[i])):
+                        pval = inter_cluster_hytest(list(ntpwd_dict[i]), list(ntpwd_dict[j])).hytest(method)
+                    else:
+                        ij_pwdist = sorted([lpd[(x, y)] for x, y in itertools.combinations(list(set(ntl_dict[i])|set(ntl_dict[j])), 2)])
+                        # take the conservative (max) p-value comparing node i/j individually to i+j
+                        pval = max([inter_cluster_hytest(list(ntpwd_dict[i]), ij_pwdist).hytest(method), inter_cluster_hytest(list(ntpwd_dict[j]), ij_pwdist).hytest(method)])
+                    currp_np_to_pval[(i,j)] = pval
+                q.put(currp_np_to_pval)
 
             print ('\nPerforming {} tests...'.format(hytest_method))
 
@@ -535,7 +532,7 @@ class get_global_tree_info(object):
                 else:
                     curr_nodepair_list = nodepair_list[p*increment:(p*increment)+increment]
 
-                proc = mp.Process(target=self.get_interclus_pval, args=(curr_nodepair_list, hytest_method, node_to_leaves_shared, node_to_ancestral_nodes_shared, node_to_pwdist_shared, queue))
+                proc = mp.Process(target=get_interclus_pval, args=(curr_nodepair_list, hytest_method, node_to_leaves_shared, node_to_ancestral_nodes_shared, node_to_pwdist_shared, queue))
                 processes.append(proc)
                 proc.start()
 
