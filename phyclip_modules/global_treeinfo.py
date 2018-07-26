@@ -500,7 +500,12 @@ class get_global_tree_info(object):
         Perform all inter-clusters' hypotheses tests
         '''
         if self.treeinfo_file_given < 1:
-            from ctypes import c_char_p
+            import os
+            from ctypes import c_char_p, set_conversion_mode
+            # change ctype object conversion rules for windows operating systems
+            if os.name == 'nt':
+                from ctypes import set_conversion_mode
+                set_conversion_mode('mbcs', 'ignore')
 
             print ('\nPerforming {} tests...'.format(hytest_method))
 
