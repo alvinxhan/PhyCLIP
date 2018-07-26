@@ -506,6 +506,7 @@ class get_global_tree_info(object):
             if os.name == 'nt':
                 from ctypes import set_conversion_mode
                 set_conversion_mode('mbcs', 'ignore')
+                print ('Windows')
 
             print ('\nPerforming {} tests...'.format(hytest_method))
 
