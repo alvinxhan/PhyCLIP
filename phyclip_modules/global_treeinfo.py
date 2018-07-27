@@ -488,37 +488,39 @@ class get_global_tree_info(object):
         '''
         if self.treeinfo_file_given < 1:
             from ctypes import c_char_p
-            import multiprocessing as mppy
-            import multiprocessing.sharedctypes as mpsc
-
-            # global
-            lpd = self.leafpair_to_distance
-
-            # worker
-            def get_interclus_pval(np_list, method, ntl_dict, ntan_dict, ntpwd_dict, q):
-                currp_np_to_pval = {}
-                for (i,j) in np_list:
-                    if (ntan_dict[j] != False and i in list(ntan_dict[j])) or (ntan_dict[i] != False and j in list(ntan_dict[i])):
-                        pval = inter_cluster_hytest(list(ntpwd_dict[i]), list(ntpwd_dict[j])).hytest(method)
-                    else:
-                        ij_pwdist = sorted([lpd[(x, y)] for x, y in itertools.combinations(list(set(ntl_dict[i])|set(ntl_dict[j])), 2)])
-                        # take the conservative (max) p-value comparing node i/j individually to i+j
-                        pval = max([inter_cluster_hytest(list(ntpwd_dict[i]), ij_pwdist).hytest(method), inter_cluster_hytest(list(ntpwd_dict[j]), ij_pwdist).hytest(method)])
-                    currp_np_to_pval[(i,j)] = pval
-                q.put(currp_np_to_pval)
+            import os
 
             print ('\nPerforming {} tests...'.format(hytest_method))
 
+            # shared memory
+            lpd = self.leafpair_to_distance
+            max_node = max(node_to_leaves.keys())
+            if os.name == 'nt':
+                # windows
+                node_to_leaves_shared = [node_to_leaves[n] if n in node_to_leaves.keys() else False for n in xrange(max_node+1)]
+            else:
+                node_to_leaves_shared = [mp.Array(c_char_p, node_to_leaves[n]) if n in node_to_leaves.keys() else False for n in xrange(max_node+1)]
+            node_to_ancestral_nodes_shared = [mp.Array('i', node_to_ancestral_nodes[n]) if n in node_to_ancestral_nodes else False for n in xrange(max_node+1)]
+            node_to_pwdist_shared = [mp.Array('d', node_to_pwdist[n]) if n in node_to_leaves.keys() else False for n in xrange(max_node+1)]
+
+            # worker
+            def get_interclus_pval(np_list, ntl_dict, ntan_dict, ntpwd_dict, q):
+                currp_np_to_pval = {}
+                for (i, j) in np_list:
+                    if (ntan_dict[j] != False and i in list(ntan_dict[j])) or (ntan_dict[i] != False and j in list(ntan_dict[i])):
+                        pval = inter_cluster_hytest(list(ntpwd_dict[i]), list(ntpwd_dict[j])).hytest(hytest_method)
+                    else:
+                        ij_pwdist = sorted([lpd[(x, y)] for x, y in itertools.combinations(list(set(ntl_dict[i]) | set(ntl_dict[j])), 2)])
+                        # take the conservative (max) p-value comparing node i/j individually to i+j
+                        pval = max([inter_cluster_hytest(list(ntpwd_dict[i]), ij_pwdist).hytest(hytest_method), inter_cluster_hytest(list(ntpwd_dict[j]), ij_pwdist).hytest(hytest_method)])
+                    currp_np_to_pval[(i, j)] = pval
+                q.put(currp_np_to_pval)
+
             # multi-proc setup
-            manager = mppy.Manager()
+            manager = mp.Manager()
 
             # shared memory
             queue = manager.Queue()
-
-            max_node = max(node_to_leaves.keys())
-            node_to_leaves_shared = [mpsc.Array(c_char_p, node_to_leaves[n]) if n in node_to_leaves.keys() else False for n in xrange(max_node+1)]
-            node_to_ancestral_nodes_shared = [mppy.Array('i', node_to_ancestral_nodes[n]) if n in node_to_ancestral_nodes else False for n in xrange(max_node+1)]
-            node_to_pwdist_shared = [mppy.Array('d', node_to_pwdist[n]) if n in node_to_leaves.keys() else False for n in xrange(max_node+1)]
 
             # generate processes
             processes = []
@@ -534,7 +536,7 @@ class get_global_tree_info(object):
                 else:
                     curr_nodepair_list = nodepair_list[p*increment:(p*increment)+increment]
 
-                proc = mppy.Process(target=get_interclus_pval, args=(curr_nodepair_list, hytest_method, node_to_leaves_shared, node_to_ancestral_nodes_shared, node_to_pwdist_shared, queue))
+                proc = mp.Process(target=get_interclus_pval, args=(curr_nodepair_list, node_to_leaves_shared, node_to_ancestral_nodes_shared, node_to_pwdist_shared, queue))
                 processes.append(proc)
                 proc.start()
 
