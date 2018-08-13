@@ -114,6 +114,7 @@ You can use programs such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/
 ```
 usage: phyclip.py [-h] [-i INPUT_FILE] [--treeinfo TREEINFO] [--no_treeinfo]
                   [--pdf_tree] [--optimise {intermediate,high}]
+                  [--tree_outgroup TREE_OUTGROUP]
                   [--collapse_zero_branch_length {0,1}]
                   [--equivalent_zero_length EQUIVALENT_ZERO_LENGTH]
                   [--subsume_sensitivity_induced_clusters {0,1}]
@@ -145,6 +146,9 @@ Analysis aids:
                         parameter set in input file.
 
 Analysis options:
+  --tree_outgroup TREE_OUTGROUP
+                        Taxon (name as appeared in tree) to be set as outgroup
+                        for rooting.
   --collapse_zero_branch_length {0,1}
                         Collapse internal nodes with zero branch length of
                         tree before running PhyCLIP (default = 0).
