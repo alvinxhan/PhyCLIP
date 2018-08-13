@@ -14,9 +14,11 @@ Full documentation:
 http://github.com/alvinxhan/PhyCLIP/wiki
 
 ## Installation
-PhyCLIP is written in Python 2.7 (no support for Python 3 currently) and depends on several python libraries and at least one ILP solver. 
+PhyCLIP is written in Python 2.7 and depends on several python libraries and at least one ILP solver. 
 
 To simplify the installation process, we highly reccomend that you use Anaconda, a free and open-source distribution of Python and package management system. Visit http://www.anaconda.com/download/ to download and install the **Python 2.7 version** distribution for your preferred OS. 
+
+There is no support for Python 3 currently. However, if you are using a Python 3 Conda environment, you can still install/run PhyCLIP by first building a Python 2 Conda environment (see [Installation](http://github.com/alvinxhan/PhyCLIP/wiki/II.-Installation)).
 
 ### Prerequisite: Python libraries    
 
@@ -33,7 +35,7 @@ $ conda install numpy scipy statsmodels
 
 ```
 
-Alternatively, if you are using PyPi:
+Alternatively, if can also use pip:
 ```
 $ pip install ete3
 $ pip install numpy scipy statsmodels pathos
@@ -110,16 +112,15 @@ You can use programs such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/
 ### Running phyclip.py
 
 ```
-usage: phyclip.py [-h] -i INPUT_FILE [--treeinfo TREEINFO] [--no_treeinfo]
-                  [--optimise {intermediate,high}] [--prior PRIOR]
-                  [--prior_weights PRIOR_WEIGHTS] [--pdf_tree]
-                  [--collapse_zero_branch_lengths {0,1}]
+usage: phyclip.py [-h] [-i INPUT_FILE] [--treeinfo TREEINFO] [--no_treeinfo]
+                  [--pdf_tree] [--optimise {intermediate,high}]
+                  [--collapse_zero_branch_length {0,1}]
                   [--equivalent_zero_length EQUIVALENT_ZERO_LENGTH]
-                  [--gam_method {mad,qn}] [--hypo_test {kuiper,kolsmi}]
-                  [--preQ {0,1}]
                   [--subsume_sensitivity_induced_clusters {0,1}]
                   [--sensitivity_percentile SENSITIVITY_PERCENTILE]
-                  [--subsume_subclusters {0,1}] [--solver {glpk,gurobi}]
+                  [--subsume_subclusters {0,1}] [--gam_method {mad,qn}]
+                  [--hypo_test {kuiper,kolsmi}] [--preQ {0,1}] [--prior PRIOR]
+                  [--prior_weights PRIOR_WEIGHTS] [--solver {glpk,gurobi}]
                   [--solver_verbose {0,1}] [--solver_check]
                   [--threads THREADS]
 
@@ -127,42 +128,30 @@ Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1
 
 optional arguments:
   -h, --help            show this help message and exit
+
+Required:
   -i INPUT_FILE, --input_file INPUT_FILE
                         Input file. See manual for format details.
+
+Analysis aids:
   --treeinfo TREEINFO   *_treeinfo.txt file generated from PREVIOUS PhyCLIP
                         run of the SAME phylogenetic tree.
   --no_treeinfo         Stop PhyCLIP from generating *_treeinfo.txt file.
+  --pdf_tree            PDF tree output annotated with cluster results.
   --optimise {intermediate,high}
                         PhyCLIP automatically searches for the clustering
                         result from the OPTIMAL input parameter set. See
                         documentation for details. Must have >1 input
                         parameter set in input file.
-  --prior PRIOR         Prior information on clustered taxa. File format same
-                        as PhyCLIP cluster text file output (i.e. CLUSTER-
-                        ID{tab}SEQUENCE-NAME). Only works with gurobi solver,
-                        no support for glpk.
-  --prior_weights PRIOR_WEIGHTS
-                        Weights on importance/confidence between prior
-                        clusters to remain clustered together. File format:
-                        CLUSTER-ID{tab}INT/FLOAT_WEIGHT{\newline}. Equal
-                        weights will be assumed if none is given.
-  --pdf_tree            PDF tree output annotated with cluster results.
-  --collapse_zero_branch_lengths {0,1}
-                        Collapse internal nodes with zero branch lengths of
+
+Analysis options:
+  --collapse_zero_branch_length {0,1}
+                        Collapse internal nodes with zero branch length of
                         tree before running PhyCLIP (default = 0).
   --equivalent_zero_length EQUIVALENT_ZERO_LENGTH
                         Maximum branch length to be rounded to zero if the
-                        --collapse_zero_branch_lengths flag is passed
-                        (advanced option, default = 1e-06).
-  --gam_method {mad,qn}
-                        Method to estimate robust dispersion measure (default
-                        = qn).
-  --hypo_test {kuiper,kolsmi}
-                        Hypothesis test to use for statistical differentiation
-                        of distance distributions (default = kuiper).
-  --preQ {0,1}          Perform Benjamini-Hochberg corrections of p-values
-                        BEFORE filtering nodes that are < minimum cluster size
-                        (advanced option, default = 0).
+                        --collapse_zero_branch_length flag is passed (advanced
+                        option, default = 1e-06).
   --subsume_sensitivity_induced_clusters {0,1}
                         Subsume cluster-size sensitivity-induced clusters into
                         parent cluster (default = 1).
@@ -173,13 +162,35 @@ optional arguments:
   --subsume_subclusters {0,1}
                         Subsume sub-clusters into their respective parent
                         clusters (default = 0).
+  --gam_method {mad,qn}
+                        Method to estimate robust dispersion measure (default
+                        = qn).
+  --hypo_test {kuiper,kolsmi}
+                        Hypothesis test to use for statistical differentiation
+                        of distance distributions (default = kuiper).
+  --preQ {0,1}          Perform Benjamini-Hochberg corrections of p-values
+                        BEFORE filtering nodes that are < minimum cluster size
+                        (advanced option, default = 0).
+
+Prior options:
+  --prior PRIOR         Prior information on clustered taxa. File format same
+                        as PhyCLIP cluster text file output (i.e. CLUSTER-
+                        ID{tab}SEQUENCE-NAME). Only works with gurobi solver,
+                        no support for glpk.
+  --prior_weights PRIOR_WEIGHTS
+                        Weights on importance/confidence between prior
+                        clusters to remain clustered together. File format:
+                        CLUSTER-ID{tab}INT/FLOAT_WEIGHT{\newline}. Equal
+                        weights will be assumed if none is given.
+
+Solver options:
   --solver {glpk,gurobi}
                         Preferred ILP solver IF more than one solvers are
                         available (default: gurobi).
   --solver_verbose {0,1}
                         ILP solver verbose (default: 0)
   --solver_check        Check available ILP solver(s) installed.
-  --threads THREADS     Number of threads (default = all).
+  --threads THREADS     Number of threads to use (default = all).
 ```
 
 For example, running phyclip.py by the default settings: 
