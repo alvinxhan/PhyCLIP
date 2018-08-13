@@ -107,14 +107,14 @@ examples/example.nwk
 5,0.2,1
 ```
 
-You can use programs such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/) for tree rooting and/or conversion to the NEWICK format.
+You can use programs such as FigTree (http://tree.bio.ed.ac.uk/software/figtree/) for tree rooting and/or conversion to the NEWICK format. Alternatively, if you know which outgroup to root tree by, you may also use the ```--tree_outgroup``` flag (see below).
 
 ### Running phyclip.py
 
 ```
 usage: phyclip.py [-h] [-i INPUT_FILE] [--treeinfo TREEINFO] [--no_treeinfo]
                   [--pdf_tree] [--optimise {intermediate,high}]
-                  [--tree_outgroup TREE_OUTGROUP]
+                  [--tree_outgroup TREE_OUTGROUP] [--midpoint]
                   [--collapse_zero_branch_length {0,1}]
                   [--equivalent_zero_length EQUIVALENT_ZERO_LENGTH]
                   [--subsume_sensitivity_induced_clusters {0,1}]
@@ -149,6 +149,7 @@ Analysis options:
   --tree_outgroup TREE_OUTGROUP
                         Taxon (name as appeared in tree) to be set as outgroup
                         for rooting.
+  --midpoint            Root tree by mid-point node.
   --collapse_zero_branch_length {0,1}
                         Collapse internal nodes with zero branch length of
                         tree before running PhyCLIP (default = 0).

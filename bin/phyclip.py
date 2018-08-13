@@ -32,6 +32,7 @@ if __name__ == '__main__':
 
     analyses_options = parser.add_argument_group('Analysis options')
     analyses_options.add_argument('--tree_outgroup', type=str, help='Taxon (name as appeared in tree) to be set as outgroup for rooting.')
+    analyses_options.add_argument('--midpoint', action='store_true', help='Root tree by mid-point node.')
     analyses_options.add_argument('--collapse_zero_branch_length', default=0, choices=[0, 1], type=int, help='Collapse internal nodes with zero branch length of tree before running PhyCLIP (default = %(default)s).')
     analyses_options.add_argument('--equivalent_zero_length', default=0.000001, type=float, help='Maximum branch length to be rounded to zero if the --collapse_zero_branch_length flag is passed (advanced option, default = %(default)s).')
 
@@ -104,13 +105,25 @@ if __name__ == '__main__':
     except:
         raise Exception('\nInvalid tree file. Check that the correct path to the NEWICK tree file is given in the first line of the input file.\n')
 
-    if params.tree_outgroup:
-        try:
-            root_node = tree&"'{}'".format(params.tree_outgroup)
-            tree.set_outgroup(root_node)
-            print ('\nWARNING: Tree outgroup changed to {}.'.format(params.tree_outgroup))
-        except:
-            raise Exception('\nGiven outgroup {} did not match any taxon node in tree.\n'.format(params.tree_outgroup))
+    # changing tree root
+    if params.tree_outgroup or params.midpoint:
+
+        root_node = ''
+
+        if params.tree_outgroup:
+            try:
+                root_node = tree&"'{}'".format(params.tree_outgroup)
+            except:
+                raise Exception('\nGiven outgroup {} did not match any taxon node in tree.\n'.format(params.tree_outgroup))
+
+        if params.midpoint:
+            if root_node != '':
+                raise Exception('\nOnly ONE rooting method is accepted.\n')
+            else:
+                root_node = tree.get_midpoint_outgroup()
+
+        tree.set_outgroup(root_node)
+        print ('\nWARNING: Tree outgroup changed to {}.'.format(root_node.name if params.tree_outgroup else 'mid-point'))
 
     tree.ladderize() # ladderize tree
     taxon_list = tree.get_leaf_names() # get list of all taxa
