@@ -4,8 +4,8 @@ import itertools
 import numpy as np
 import time
 
-def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_to_qval, node_to_mean_pwdist, within_cluster_limit, min_cluster_size, fdr_cutoff, prior, pc_weights, verbose, model_identifier):
-    print ('Solving with gurobi {}...'.format(gurobi.version()))
+def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_to_qval, node_to_mean_pwdist, within_cluster_limit, min_cluster_size, fdr_cutoff, prior, pc_weights, verbose, model_identifier, ncpu_to_use):
+    print ('Solving with gurobi...')
 
     # set up indices
     if verbose == 1:
@@ -51,6 +51,7 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
     model.Params.Seed = 666 # Fixed seed to maintain same search path
     model.Params.Method = 1 # always solve by dual simplex (avoid numerical issues)
     model.Params.NumericFocus = 3 # greatest care on numerics (suffer on speed)
+    model.Params.Threads = ncpu_to_use # set number of threads to use
 
     # verbose
     model.Params.LogToConsole = verbose
@@ -155,7 +156,7 @@ def gurobi_solver(node_to_leaves, all_leaves, list_of_ancestral_node, nodepair_t
         # get solution pool size
         solution_pool_size = model.getAttr('SolCount')
 
-        for sol_index in xrange(solution_pool_size):
+        for sol_index in range(solution_pool_size):
 
             # get solution
             model.params.solutionNumber = sol_index

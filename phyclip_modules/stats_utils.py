@@ -7,7 +7,7 @@ def weighted_high_median(a, wts):
     wtotal = 0
     wdiscardedlow = 0
 
-    for i in xrange(N):
+    for i in range(N):
         wtotal += wts[i]
 
     nn = N
@@ -18,7 +18,7 @@ def weighted_high_median(a, wts):
         # Count up the weight to the left of and at the trial point.
         # Weight to the right of it isn't needed
         wleft = wtrial = 0
-        for i in xrange(nn):
+        for i in range(nn):
             if a[i] < trial:
                 wleft += wts[i]
             elif a[i] == trial:
@@ -28,7 +28,7 @@ def weighted_high_median(a, wts):
             # Trial value is too high
             ncandidates = 0
             #for i = 1:nn
-            for i in xrange(nn):
+            for i in range(nn):
                 if a[i] < trial:
                     a[ncandidates] = a[i]
                     wts[ncandidates] = wts[i]
@@ -43,7 +43,7 @@ def weighted_high_median(a, wts):
             # Trial value is too low
             ncandidates = 0
             #for i = 1:nn
-            for i in xrange(nn):
+            for i in range(nn):
                 if a[i] > trial:
                     a[ncandidates] = a[i]
                     wts[ncandidates] = wts[i]
@@ -79,7 +79,7 @@ def qn(data):
 
     while (nR-nL) > n:
         j = 1
-        for i in xrange(1,n,1):
+        for i in range(1,n,1):
             if left[i] <= right[i]:
                 weight[j-1] = right[i] - left[i] + 1
                 jhelp = left[i] + int(weight[j-1]/2)
@@ -89,13 +89,13 @@ def qn(data):
         trial = weighted_high_median(work[:j-1], weight[:j-1])
 
         j=0
-        for i in xrange(n-1, -1, -1):
+        for i in range(n-1, -1, -1):
             while (j < n) and (data[i]-data[n-j-1] < trial):
                 j += 1
             P[i] = j
 
         j = n+1
-        for i in xrange(n):
+        for i in range(n):
             while data[i]-data[n-j+2-1] > trial: # 55
                 j -= 1
             Q[i] = j
@@ -116,9 +116,9 @@ def qn(data):
 
     if found == False:
         j=1
-        for i in xrange(1,n,1):
+        for i in range(1,n,1):
             if left[i] <= right[i]:
-                for jj in xrange(left[i], right[i]+1, 1):
+                for jj in range(left[i], right[i]+1, 1):
                     work[j-1] = data[i]-data[n-jj]
                     j += 1
 
@@ -155,9 +155,9 @@ def get_cluster_size_distribution(clusterid_to_taxa):
 
     return [i for j in [[clusterlen] * frequency for clusterlen, frequency in clusterlen_to_frequency.items()] for i in j]
 
-def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status, pc_input, sol_ver):
+#def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status, pc_input, sol_ver):
 
-    #def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, pc_input, sol_ver):
+def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepair_to_dist, clusterlen_distribution, statsfname, treefname, total_clustered_count, total_taxa_count, min_cluster_size, fdr_cutoff, gamma, hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, pc_input, sol_ver):
 
     """
     Summary stats of within- and inter-clade divergence
@@ -215,16 +215,16 @@ def summary_stats(clusterid_to_taxa, master_leafpair_to_distance, master_nodepai
                    np.mean(clusterlen_distribution), sd_cluster_size, median_cluster_size, mad_cluster_size, min(clusterlen_distribution), max(clusterlen_distribution),
                    mu_pwd, sd_mean_dist, np.mean(median_dist), sd_median_dist, min(mean_dist), max(mean_dist),
                    mu_icd, sd_intercluster_dist, median_intercluster, mad_intercluster, min(intercluster_dist), max(intercluster_dist), sol_ver]
-
+        """
         output.write('{}\t{}\t{}\t{}\t'
                      '{}\t{}\t{}\t{}\t{}\t{}\t'
                      .format(treefname, min_cluster_size, fdr_cutoff, gamma,
                              hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index, clean_up_status))
-
-        #output.write('{}\t{}\t{}\t{}\t'
-        #             '{}\t{}\t{}\t{}\t{}\t'
-        #             .format(treefname, min_cluster_size, fdr_cutoff, gamma,
-        #                     hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index))
+        """
+        output.write('{}\t{}\t{}\t{}\t'
+                     '{}\t{}\t{}\t{}\t{}\t'
+                     .format(treefname, min_cluster_size, fdr_cutoff, gamma,
+                             hytest_method, dispersion_method, qval_determination, within_cluster_limit, solution_index))
 
         if pc_input == False:
             output.write('na\t')

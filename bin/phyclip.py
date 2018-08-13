@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)
+# Authors: Alvin X. Han and Edyth Parker
+
 from __future__ import division, print_function
 import ete3
 import re
@@ -17,71 +20,74 @@ if __name__ == '__main__':
     # parse parameters
     import argparse
     parser = argparse.ArgumentParser(description='Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1')
-    parser.add_argument('-i', '--input_file', required=True, type=str, help='Input file. See manual for format details.')
-    parser.add_argument('--treeinfo', type=str, help='*_treeinfo.txt file generated from PREVIOUS PhyCLIP run of the SAME phylogenetic tree.')
-    parser.add_argument('--no_treeinfo', action='store_true', help='Stop PhyCLIP from generating *_treeinfo.txt file.')
+    
+    required_args = parser.add_argument_group('Required')
+    required_args.add_argument('-i', '--input_file', type=str, help='Input file. See manual for format details.')
+    
+    analyses_aid = parser.add_argument_group('Analysis aids')
+    analyses_aid.add_argument('--treeinfo', type=str, help='*_treeinfo.txt file generated from PREVIOUS PhyCLIP run of the SAME phylogenetic tree.')
+    analyses_aid.add_argument('--no_treeinfo', action='store_true', help='Stop PhyCLIP from generating *_treeinfo.txt file.')
+    analyses_aid.add_argument('--pdf_tree', action='store_true', help='PDF tree output annotated with cluster results.')
+    analyses_aid.add_argument('--optimise', choices=['intermediate', 'high'], help='PhyCLIP automatically searches for the clustering result from the OPTIMAL input parameter set. See documentation for details. Must have >1 input parameter set in input file.')
 
-    parser.add_argument('--optimise', choices=['intermediate', 'high'], help='PhyCLIP automatically searches for the clustering result from the OPTIMAL input parameter set. See documentation for details. Must have >1 input parameter set in input file.')
+    analyses_options = parser.add_argument_group('Analysis options')
+    analyses_options.add_argument('--collapse_zero_branch_length', default=0, choices=[0, 1], type=int, help='Collapse internal nodes with zero branch length of tree before running PhyCLIP (default = %(default)s).')
+    analyses_options.add_argument('--equivalent_zero_length', default=0.000001, type=float, help='Maximum branch length to be rounded to zero if the --collapse_zero_branch_length flag is passed (advanced option, default = %(default)s).')
 
-    parser.add_argument('--prior', type=str, help='Prior information on clustered taxa. File format same as PhyCLIP cluster text file output (i.e. CLUSTER-ID{tab}SEQUENCE-NAME). Only works with gurobi solver, no support for glpk.')
-    parser.add_argument('--prior_weights', type=str, help='Weights on importance/confidence between prior clusters to remain clustered together. File format: CLUSTER-ID{tab}INT/FLOAT_WEIGHT{\\newline}. Equal weights will be assumed if none is given.')
+    analyses_options.add_argument('--subsume_sensitivity_induced_clusters', default=1, choices=[0, 1], type=int, help='Subsume cluster-size sensitivity-induced clusters into parent cluster (default = %(default)s).')
+    analyses_options.add_argument('--sensitivity_percentile', default=25, type=int, help='Percentile of cluster size distribution under which a cluster is considered to be sensitivity-induced (advanced option, default = %(default)s%%).')
+    analyses_options.add_argument('--subsume_subclusters', default=0, choices=[0, 1], type=int, help='Subsume sub-clusters into their respective parent clusters (default = %(default)s).')
 
-    parser.add_argument('--pdf_tree', action='store_true', help='PDF tree output annotated with cluster results.')
+    analyses_options.add_argument('--gam_method', choices=['mad', 'qn'], default='qn',  help='Method to estimate robust dispersion measure (default = %(default)s).')
+    analyses_options.add_argument('--hypo_test', choices=['kuiper', 'kolsmi'], default='kuiper', help='Hypothesis test to use for statistical differentiation of distance distributions (default = %(default)s).')
+    analyses_options.add_argument('--preQ', default=0, choices=[0, 1], type=int, help='Perform Benjamini-Hochberg corrections of p-values BEFORE filtering nodes that are < minimum cluster size (advanced option, default = %(default)s).')
 
-    parser.add_argument('--collapse_zero_branch_lengths', default=0, choices=[0, 1], type=int, help='Collapse internal nodes with zero branch lengths of tree before running PhyCLIP (default = %(default)s).')
-    parser.add_argument('--equivalent_zero_length', default=0.000001, type=float, help='Maximum branch length to be rounded to zero if the --collapse_zero_branch_lengths flag is passed (advanced option, default = %(default)s).')
+    prior_options = parser.add_argument_group('Prior options')
+    prior_options.add_argument('--prior', type=str, help='Prior information on clustered taxa. File format same as PhyCLIP cluster text file output (i.e. CLUSTER-ID{tab}SEQUENCE-NAME). Only works with gurobi solver, no support for glpk.')
+    prior_options.add_argument('--prior_weights', type=str, help='Weights on importance/confidence between prior clusters to remain clustered together. File format: CLUSTER-ID{tab}INT/FLOAT_WEIGHT{\\newline}. Equal weights will be assumed if none is given.')
 
-    parser.add_argument('--gam_method', choices=['mad', 'qn'], default='qn',  help='Method to estimate robust dispersion measure (default = %(default)s).')
-    parser.add_argument('--hypo_test', choices=['kuiper', 'kolsmi'], default='kuiper', help='Hypothesis test to use for statistical differentiation of distance distributions (default = %(default)s).')
-    parser.add_argument('--preQ', default=0, choices=[0, 1], type=int, help='Perform Benjamini-Hochberg corrections of p-values BEFORE filtering nodes that are < minimum cluster size (advanced option, default = %(default)s).')
+    solver_options = parser.add_argument_group('Solver options')
+    solver_options.add_argument('--solver', default='gurobi', choices=['glpk', 'gurobi'], type=str, help='Preferred ILP solver IF more than one solvers are available (default: %(default)s).')
+    solver_options.add_argument('--solver_verbose', default=0, choices=[0, 1], type=int, help='ILP solver verbose (default: %(default)s)')
+    solver_options.add_argument('--solver_check', action='store_true', help='Check available ILP solver(s) installed.')
 
-    parser.add_argument('--subsume_sensitivity_induced_clusters', default=1, choices=[0, 1], type=int, help='Subsume cluster-size sensitivity-induced clusters into parent cluster (default = %(default)s).')
-    parser.add_argument('--sensitivity_percentile', default=25, type=int, help='Percentile of cluster size distribution under which a cluster is considered to be sensitivity-induced (advanced option, default = %(default)s%%).')
-    parser.add_argument('--subsume_subclusters', default=0, choices=[0, 1], type=int, help='Subsume sub-clusters into their respective parent clusters (default = %(default)s).')
-
-    parser.add_argument('--solver', default='gurobi', choices=['glpk', 'gurobi'], type=str, help='Preferred ILP solver IF more than one solvers are available (default: %(default)s).')
-    parser.add_argument('--solver_verbose', default=0, choices=[0, 1], type=int, help='ILP solver verbose (default: %(default)s)')
-    parser.add_argument('--solver_check', action='store_true', help='Check available ILP solver(s) installed.')
-
-    parser.add_argument('--threads', type=int, help='Number of threads (default = all).')
+    solver_options.add_argument('--threads', type=int, help='Number of threads to use (default = all).')
 
     params = parser.parse_args()
 
     print ('{}\n\n{:^72}\n{:^72}\n\n{}'.format(''.join(['-']*72), 'Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)', 'Version 0.1', ''.join(['-']*72)))
 
-    # limit number of threads for parallelization
-    try:
-        ncpu = int(params.threads)
-    except:
-        from pathos.helpers import mp
-        ncpu = mp.cpu_count()
-
     # check solver availability
-    available_solvers = []
+    available_solvers = {}
     try:
         # check for glpsol
         import subprocess
-        cmd = ['glpsol', '--help']
-        subprocess.call(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        available_solvers.append('glpk')
+        cmd = ['glpsol', '--version']
+        solver_version = 'glpk_{}'.format(re.search('v\d+\.\d+', subprocess.check_output(cmd)).group())
+        available_solvers['glpk'] = solver_version
     except:
         pass
 
     try:
-        import gurobipy
-        available_solvers.append('gurobi')
+        from gurobipy import gurobi
+        solver_version = 'gurobi_v{}'.format('.'.join(map(str, gurobi.version())))
+        available_solvers['gurobi'] = solver_version
     except:
         pass
 
     if len(available_solvers) > 0:
         # exit if only to check available ILP solver(s) installed
         if params.solver_check:
-            raise Exception('\nAvailable solvers...{}\n'.format(', '.join(available_solvers)))
+            print ('\nAvailable solvers...{}\n'.format(', '.join(available_solvers.values())))
+            exit(0)
     else:
         raise Exception('\nNo supported solvers installed. See manual for details on how to download and install supported ILP solvers.\n')
 
     # check input file format
-    infhandle = filter(None, [_.strip() for _ in open(params.input_file, 'rU')])
+    try:
+        infhandle = filter(None, [_.strip() for _ in open(params.input_file, 'rU')])
+    except:
+        raise Exception('\nMissing input file.\n')
     # first line of input file should be path to tree file
     treepath = infhandle.pop(0)
 
@@ -97,13 +103,13 @@ if __name__ == '__main__':
     except:
         raise Exception('\nInvalid tree file. Check that the correct path to the NEWICK tree file is given in the first line of the input file.\n')
 
-    tree.ladderize() # ladderize tree
+    #tree.ladderize() # ladderize tree
     taxon_list = tree.get_leaf_names() # get list of all taxa
 
     # collapse zero branch length
-    if params.collapse_zero_branch_lengths == 1:
-        from phyclip_modules.tree_utils import collapse_zero_branch_lengths
-        tree = collapse_zero_branch_lengths(tree, params.equivalent_zero_length)
+    if params.collapse_zero_branch_length == 1:
+        from phyclip_modules.tree_utils import collapse_zero_branch_length
+        tree = collapse_zero_branch_length(tree, params.equivalent_zero_length)
 
         if tree == False:
             raise Exception('No branches were collapsed. Check the upper limit of zero-length branches on your tree and adjust accordingly using --equivalent_zero_length')
@@ -232,27 +238,25 @@ if __name__ == '__main__':
     # preferred solver
     if params.solver not in available_solvers:
         print ('\nWARNING: {} is not installed.'.format(params.solver))
-        params.solver = available_solvers[0]
-    print('\nILP solver...{}'.format(params.solver))
+        params.solver = available_solvers.keys()[0]
+
+    print('\nILP solver...{}'.format(available_solvers[params.solver]))
 
     # only gurobi has prior support
     if params.prior and params.solver != 'gurobi':
-        if gurobi in available_solvers:
+        if 'gurobi' in available_solvers:
             params.solver = 'gurobi'
-            print ('WARNING: Prior analyses can only be performed using gurobi. Switching to gurobi solver...')
+            print ('WARNING: Prior analyses can only be performed using gurobi. Switching to {}...'.format(available_solvers[params.solver]))
         else:
             raise Exception('\nPrior analyses can only be performed using gurobi solver.\n')
 
-    # check gurobi version
-    if params.solver == 'gurobi':
-        from gurobipy import gurobi
-        solver_version = str(gurobi.version())
-    else:
-        # check glpk version
-        import subprocess
-        cmd = ['glpsol', '--version']
-        solver_version = re.search('v\d+\.\d+', subprocess.check_output(cmd)).group()
-    solver_version = '{}_{}'.format(params.solver, solver_version)
+    # limit number of threads for parallelization
+    try:
+        ncpu = int(params.threads)
+    except:
+        from pathos.helpers import mp
+        ncpu = mp.cpu_count()
+    print ('Threads...{}'.format(ncpu))
 
     # check if summary stats file already exist in current working directory
     statsfname = 'summary-stats_{}.txt'.format(inputfname)
@@ -267,18 +271,18 @@ if __name__ == '__main__':
     # write header of summary stats output
     if overwrite_statsfile == 'y':
         with open(statsfname, 'w') as output:
-            output.write('Treefile\tCS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tClean_up\tPrior_taxa_clustered(%)\t'
-                         '#_of_clustered_sequences\tTotal_no_of_sequences\t%_clustered\t#_of_clusters\t'
-                         'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
-                         'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
-                         'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\tsolver(version)\n')
-            """
+            """output.write('Treefile\tCS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tClean_up\tPrior_taxa_clustered(%)\t'
+             '#_of_clustered_sequences\tTotal_no_of_sequences\t%_clustered\t#_of_clusters\t'
+             'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
+             'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
+             'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\tsolver(version)\n')"""
+
             output.write('Treefile\tCS\tFDR\tMAD\tKuiper/KS\tQn/MAD\tq-values\tWithin_cluster_limit\tSolution_Index\tPrior_taxa_clustered(%)\t'
                          '#_of_clustered_sequences\tTotal_no_of_sequences\t%_clustered\t#_of_clusters\t'
                         'Mean_cluster_size\tS.D.\tMedian_cluster_size\tMAD\tMin_cluster_size\tMax_cluster_size\t'
                         'Grand_mean_of_mean_pwd\tS.D.\tGrand_mean_of_median_pwd\tS.D.\tMin_mean_pwd\tMax_mean_pwd\t'
                         'Mean_of_inter-cluster_dist\tS.D.\tMedian_of_inter-cluster_dist\tMAD\tMin_inter-cluster_dist\tMax_inter-cluster_dist\tsolver(version)\n')
-            """
+
 
     # --- GLOBAL TREE INFORMATION --- #
     print ('\nGetting tree information...')
@@ -395,7 +399,7 @@ if __name__ == '__main__':
         if params.solver == 'gurobi':
             from phyclip_modules.gurobi_solver import gurobi_solver
             #try:
-            all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose, p_index)
+            all_solutions = gurobi_solver(curr_node_to_leaves, curr_leaves, curr_list_of_ancestral_node, curr_nodepair_to_qval, curr_node_to_mean_pwdist, curr_wcl, cs, fdr, prior_input, prior_weights, params.solver_verbose, p_index, ncpu)
             #except:
             #raise Exception('\nUnable to solve ILP model using gurobi. You may try to use other available solvers by the --solver flag.\n')
         else:
@@ -430,6 +434,7 @@ if __name__ == '__main__':
                 except:
                     curr_clusterid_to_taxa[clusterid] = [taxon]
 
+            """
             #! --- print pre-clean up results start --- !#
 
             print ('Writing outputs (pre-clean-up)...')
@@ -444,9 +449,10 @@ if __name__ == '__main__':
             # get clusterlen distribution
             pre_clean_up_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa)
 
-            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, pre_clean_up_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'pre-clean', prior_input, solver_version)
+            summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, pre_clean_up_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'pre-clean', prior_input, available_solvers[params.solver])
 
             # ! --- print pre-clean up results end --- !#
+            """
 
             print('\nCleaning up clusters...')
             cleanup_object = clean_up_modules(curr_node_to_descendant_nodes, global_node_to_leaves, global_leafpair_to_distance, curr_node_to_leaves, curr_wcl, cs)
@@ -475,17 +481,18 @@ if __name__ == '__main__':
             curr_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa)
 
             # print outputs
-            print ('Writing outputs (post-clean-up)...')
-            #print ('Writing outputs...')
-            output_obj = phyclip_output(original_tree_string, global_tree_string, curr_taxon_to_clusterid, curr_clusterid_to_taxa, taxon_list, curr_outfname, 'post-clean', curr_sensitivity_subsumed_taxa_to_clusterid if params.subsume_sensitivity_induced_clusters else False, curr_nosub_taxa_to_clusterid if params.subsume_subclusters else False)
+            #print ('Writing outputs (post-clean-up)...')
+            print ('Writing outputs...')
+            #output_obj = phyclip_output(original_tree_string, global_tree_string, curr_taxon_to_clusterid, curr_clusterid_to_taxa, taxon_list, curr_outfname, 'post-clean', curr_sensitivity_subsumed_taxa_to_clusterid if params.subsume_sensitivity_induced_clusters else False, curr_nosub_taxa_to_clusterid if params.subsume_subclusters else False)
+            output_obj = phyclip_output(original_tree_string, global_tree_string, curr_taxon_to_clusterid, curr_clusterid_to_taxa, taxon_list, curr_outfname, curr_sensitivity_subsumed_taxa_to_clusterid if params.subsume_sensitivity_induced_clusters else False, curr_nosub_taxa_to_clusterid if params.subsume_subclusters else False)
             # cluster file
             curr_modified_tree_string = output_obj.cluster_output()
             # figtree annotated tree file
             output_obj.figtree_output(curr_modified_tree_string)
 
             # append to summary stats output file
-            curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean', prior_input, solver_version)
-            #curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, prior_input, solver_version)
+            #curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, 'post-clean', prior_input, solver_version)
+            curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_leafpair_to_distance, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(taxon_list), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', curr_wcl, sol_index, prior_input, solver_version)
 
             # optimise
             if params.optimise:

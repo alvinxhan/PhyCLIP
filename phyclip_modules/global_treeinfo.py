@@ -101,7 +101,7 @@ class inter_cluster_hytest(object):
             termbf = 0
             dist = 1
 
-            for j in xrange(1, 100000, 1):
+            for j in range(1, 100000, 1):
                 term = 2.0*((4.0*j*j*q*q)-1)*np.exp(a2*j*j)
                 sum += term
 
@@ -222,7 +222,7 @@ class get_global_tree_info(object):
         shuffle(nindex_list) # shuffle to make multi-processes more equitable
         increment = int(len(nindex_list)/self.cores)
 
-        for p in xrange(self.cores):
+        for p in range(self.cores):
             if p == self.cores-1:
                 curr_nindex_list = nindex_list[p*increment:]
             else:
@@ -234,7 +234,7 @@ class get_global_tree_info(object):
             proc.start()
 
         # collect results to dictionary
-        for p in xrange(len(processes)):
+        for p in range(len(processes)):
             node_to_leaves.update(node_to_leaves_queue.get())
 
             for leaf_key, list_value in leaf_dist_to_node_queue.get().items():
@@ -403,7 +403,7 @@ class get_global_tree_info(object):
             leafpair_list = list(itertools.combinations(self.tree_object.get_leaves(), 2))
             increment = int(len(leafpair_list)/self.cores)
 
-            for p in xrange(self.cores):
+            for p in range(self.cores):
                 if p == self.cores-1:
                     curr_leafpair_list = leafpair_list[p*increment:]
                 else:
@@ -415,7 +415,7 @@ class get_global_tree_info(object):
                 proc.start()
 
             # collect results to dictionary
-            for p in xrange(len(processes)):
+            for p in range(len(processes)):
                 self.leafpair_to_distance.update(leafpair_to_distance_queue.get())
 
             # wait for all processes to end
@@ -497,11 +497,11 @@ class get_global_tree_info(object):
             max_node = max(node_to_leaves.keys())
             if os.name == 'nt':
                 # windows
-                node_to_leaves_shared = [node_to_leaves[n] if n in node_to_leaves.keys() else False for n in xrange(max_node+1)]
+                node_to_leaves_shared = [node_to_leaves[n] if n in node_to_leaves.keys() else False for n in range(max_node+1)]
             else:
-                node_to_leaves_shared = [mp.Array(c_char_p, node_to_leaves[n]) if n in node_to_leaves.keys() else False for n in xrange(max_node+1)]
-            node_to_ancestral_nodes_shared = [mp.Array('i', node_to_ancestral_nodes[n]) if n in node_to_ancestral_nodes else False for n in xrange(max_node+1)]
-            node_to_pwdist_shared = [mp.Array('d', node_to_pwdist[n]) if n in node_to_leaves.keys() else False for n in xrange(max_node+1)]
+                node_to_leaves_shared = [mp.Array(c_char_p, node_to_leaves[n]) if n in node_to_leaves.keys() else False for n in range(max_node+1)]
+            node_to_ancestral_nodes_shared = [mp.Array('i', node_to_ancestral_nodes[n]) if n in node_to_ancestral_nodes else False for n in range(max_node+1)]
+            node_to_pwdist_shared = [mp.Array('d', node_to_pwdist[n]) if n in node_to_leaves.keys() else False for n in range(max_node+1)]
 
             # worker
             def get_interclus_pval(np_list, ntl_dict, ntan_dict, ntpwd_dict, q):
@@ -530,7 +530,7 @@ class get_global_tree_info(object):
             shuffle(nodepair_list) # shuffle to make more equitable
 
             increment = int(len(nodepair_list)/self.cores)
-            for p in xrange(self.cores):
+            for p in range(self.cores):
                 if p == self.cores-1:
                     curr_nodepair_list = nodepair_list[p*increment:]
                 else:
@@ -541,7 +541,7 @@ class get_global_tree_info(object):
                 proc.start()
 
             # collect results to dictionary
-            for p in xrange(len(processes)):
+            for p in range(len(processes)):
                 self.nodepair_to_pval.update(queue.get())
 
             # wait for all processes to end

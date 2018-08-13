@@ -6,7 +6,8 @@ class phyclip_output(object):
     """
     Print output cluster and tree files
     """
-    def __init__(self, ori_tree_string=None, tree_string=None, taxon_to_clusterid=None, clusterid_to_taxa=None, taxon_list=None, outfname=None, clean_up_status=None, sensitivity_subsumed_taxa_to_clusterid=False, nosub_taxa_to_clusterid=False):
+    #def __init__(self, ori_tree_string=None, tree_string=None, taxon_to_clusterid=None, clusterid_to_taxa=None, taxon_list=None, outfname=None, clean_up_status=None, sensitivity_subsumed_taxa_to_clusterid=False, nosub_taxa_to_clusterid=False):
+    def __init__(self, ori_tree_string=None, tree_string=None, taxon_to_clusterid=None, clusterid_to_taxa=None, taxon_list=None, outfname=None, sensitivity_subsumed_taxa_to_clusterid=False, nosub_taxa_to_clusterid=False):
         self.ori_tree_string = ori_tree_string
         self.tree_string = tree_string
         self.taxon_to_clusterid = taxon_to_clusterid
@@ -15,14 +16,14 @@ class phyclip_output(object):
         self.sensitivity_subsumed_taxa_to_clusterid = sensitivity_subsumed_taxa_to_clusterid
         self.nosub_taxa_to_clusterid = nosub_taxa_to_clusterid
         self.outfname = outfname
-        self.clean_up_status = clean_up_status
+        #self.clean_up_status = clean_up_status
 
     def cluster_output(self):
 
         curr_tree_string = self.tree_string
 
-        with open('cluster_{}_{}.txt'.format(self.clean_up_status, self.outfname), 'w') as output:
-        #with open('cluster_{}.txt'.format(self.outfname), 'w') as output:
+        #with open('cluster_{}_{}.txt'.format(self.clean_up_status, self.outfname), 'w') as output:
+        with open('cluster_{}.txt'.format(self.outfname), 'w') as output:
 
             output.write('CLUSTER\tTAXA\tSensitivity-induced (original cluster-node-id)\tSub-cluster subsumed into parent (original cluster-node-id)\r\n')
             for taxon, clusterid in self.taxon_to_clusterid.items():
@@ -45,8 +46,8 @@ class phyclip_output(object):
 
     def figtree_output(self, modified_tree_string):
 
-        with open('tree_{}_{}.tre'.format(self.clean_up_status, self.outfname), 'w') as output:
-        #with open('tree_{}.tre'.format(self.outfname), 'w') as output:
+        #with open('tree_{}_{}.tre'.format(self.clean_up_status, self.outfname), 'w') as output:
+        with open('tree_{}.tre'.format(self.outfname), 'w') as output:
             output.write('#NEXUS\r\nBegin taxon;\r\n\tDimensions ntax={};\r\n\t\tTaxlabels\r\n'.format(len(self.taxon_list)))
             for taxon in self.taxon_list:
                 if taxon in self.taxon_to_clusterid:
@@ -125,7 +126,7 @@ class phyclip_output(object):
 
         # get widest increment of color hues
         h_increment = 1/(len(class_list)-1)
-        h_list = [0+(cl*h_increment) for cl in xrange(len(class_list))]
+        h_list = [0+(cl*h_increment) for cl in range(len(class_list))]
         random.shuffle(h_list)
         return {classification:get_color(h_list[cl]) for cl, classification in enumerate(class_list)}
 

@@ -7,7 +7,7 @@ import json
 import itertools
 import time
 
-def collapse_zero_branch_lengths(tree_object, retain_length_bound):
+def collapse_zero_branch_length(tree_object, retain_length_bound):
     '''
     Collapse nodes with zero branch lengths and reorder tree
     '''
@@ -138,7 +138,7 @@ class node_leaves_reassociation(object):
         if len(sorted_leaves) < self.min_cluster_size:
             return False
 
-        for l_index in xrange(-1, len(sorted_leaves), 1):
+        for l_index in range(-1, len(sorted_leaves), 1):
             if l_index + 1 == len(sorted_leaves) - self.min_cluster_size:
                 return False
                 break
@@ -432,7 +432,7 @@ class node_leaves_reassociation(object):
         if len(sorted_leaves) < self.min_cluster_size:
             return False
 
-        for l_index in xrange(-1, len(sorted_leaves), 1):
+        for l_index in range(-1, len(sorted_leaves), 1):
             if l_index + 1 == len(sorted_leaves) - self.min_cluster_size:
                 return False
 
@@ -688,7 +688,7 @@ class node_leaves_reassociation(object):
 
         ncpu = mp.cpu_count()
         increment = int(len(shuffled_node_list)/ncpu)
-        for p in xrange(ncpu):
+        for p in range(ncpu):
             if p == ncpu-1:
                 curr_node_list = shuffled_node_list[p*increment:]
             else:
@@ -702,7 +702,7 @@ class node_leaves_reassociation(object):
         _node_to_leaves = {}
         _node_to_descendant_nodes = {}
         _node_to_mean_pwdist = {}
-        for p in xrange(len(processes)):
+        for p in range(len(processes)):
             _node_to_leaves.update(node_to_leaves_queue.get())
             _node_to_descendant_nodes.update(node_to_descendant_nodes_queue.get())
             _node_to_mean_pwdist.update(node_to_mean_pwdist_queue.get())
