@@ -1,0 +1,140 @@
+
+Gurobi 8.0.1 (linux64, Python) logging started Mon Aug 13 12:42:03 2018
+
+Academic license - for non-commercial use only
+Changed value of parameter Seed to 666
+   Prev: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter Method to 1
+   Prev: -1  Min: -1  Max: 5  Default: -1
+Changed value of parameter NumericFocus to 3
+   Prev: 0  Min: 0  Max: 3  Default: 0
+Changed value of parameter Threads to 8
+   Prev: 0  Min: 0  Max: 1024  Default: 0
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 10898 rows, 1476 columns and 33167 nonzeros
+Variable types: 0 continuous, 1476 integer (1476 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+03]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+03]
+Found heuristic solution: objective -0.0000000
+Presolve removed 9203 rows and 620 columns
+Presolve time: 0.06s
+Presolved: 1695 rows, 856 columns, 6140 nonzeros
+Variable types: 0 continuous, 856 integer (856 binary)
+
+Root relaxation: objective 1.945000e+02, 546 iterations, 0.02 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  194.50000    0   82   -0.00000  194.50000      -     -    0s
+H    0     0                     194.0000000  194.50000  0.26%     -    0s
+     0     0  194.50000    0   82  194.00000  194.50000  0.26%     -    0s
+
+Explored 0 nodes (1156 simplex iterations) in 0.11 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 2: 194 -0 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 1.940000000000e+02, best bound 1.940000000000e+02, gap 0.0000%
+Parameter solutionNumber unchanged
+   Value: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter solutionNumber to 1
+   Prev: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter Seed to 666
+   Prev: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter Method to 1
+   Prev: -1  Min: -1  Max: 5  Default: -1
+Changed value of parameter NumericFocus to 3
+   Prev: 0  Min: 0  Max: 3  Default: 0
+Changed value of parameter Threads to 8
+   Prev: 0  Min: 0  Max: 1024  Default: 0
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 10140 rows, 1354 columns and 30109 nonzeros
+Variable types: 0 continuous, 1354 integer (1354 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+03]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+03]
+Found heuristic solution: objective -0.0000000
+Presolve removed 7618 rows and 87 columns
+Presolve time: 0.09s
+Presolved: 2522 rows, 1267 columns, 10346 nonzeros
+Variable types: 0 continuous, 1267 integer (1267 binary)
+
+Root relaxation: objective 2.220000e+02, 797 iterations, 0.04 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0     222.0000000  222.00000  0.00%     -    0s
+
+Explored 0 nodes (797 simplex iterations) in 0.13 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 2: 222 -0 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.220000000000e+02, best bound 2.220000000000e+02, gap 0.0000%
+Parameter solutionNumber unchanged
+   Value: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter solutionNumber to 1
+   Prev: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter Seed to 666
+   Prev: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter Method to 1
+   Prev: -1  Min: -1  Max: 5  Default: -1
+Changed value of parameter NumericFocus to 3
+   Prev: 0  Min: 0  Max: 3  Default: 0
+Changed value of parameter Threads to 8
+   Prev: 0  Min: 0  Max: 1024  Default: 0
+Changed value of parameter LogToConsole to 0
+   Prev: 1  Min: 0  Max: 1  Default: 1
+Optimize a model with 13897 rows, 1803 columns and 46200 nonzeros
+Variable types: 0 continuous, 1803 integer (1803 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+03]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+03]
+Found heuristic solution: objective -0.0000000
+Presolve removed 10424 rows and 66 columns
+Presolve time: 0.13s
+Presolved: 3473 rows, 1737 columns, 15772 nonzeros
+Variable types: 0 continuous, 1737 integer (1737 binary)
+
+Root relaxation: objective 2.256667e+02, 1688 iterations, 0.11 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0  225.66667    0  460   -0.00000  225.66667      -     -    0s
+H    0     0                     126.0000000  225.66667  79.1%     -    0s
+H    0     0                     153.0000000  225.66667  47.5%     -    0s
+H    0     0                     207.0000000  225.66667  9.02%     -    0s
+H    0     0                     223.0000000  225.66667  1.20%     -    1s
+     0     2  225.66667    0  460  223.00000  225.66667  1.20%     -    1s
+
+Explored 1 nodes (6432 simplex iterations) in 1.56 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 5: 223 207 153 ... -0
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.230000000000e+02, best bound 2.230000000000e+02, gap 0.0000%
+Parameter solutionNumber unchanged
+   Value: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter solutionNumber to 1
+   Prev: 0  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter solutionNumber to 2
+   Prev: 1  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter solutionNumber to 3
+   Prev: 2  Min: 0  Max: 2000000000  Default: 0
+Changed value of parameter solutionNumber to 4
+   Prev: 3  Min: 0  Max: 2000000000  Default: 0
