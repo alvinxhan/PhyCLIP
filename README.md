@@ -35,7 +35,7 @@ $ conda install numpy scipy statsmodels
 
 ```
 
-Alternatively, if can also use pip:
+Alternatively, you can also use pip:
 ```
 $ pip install ete3
 $ pip install numpy scipy statsmodels pathos
