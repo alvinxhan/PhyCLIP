@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     params = parser.parse_args()
 
-    print ('{}\n\n{:^72}\n{:^72}\n\n{}'.format(''.join(['-']*72), 'Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)', 'Version 0.1', ''.join(['-']*72)))
+    print ('{}\n\n{:^72}\n{:^72}\n\n{}'.format(''.join(['-']*72), 'Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)', 'Version 1.0', ''.join(['-']*72)))
 
     # check solver availability
     available_solvers = {}
