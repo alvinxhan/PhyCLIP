@@ -20,7 +20,7 @@ def collapse_zero_branch_length(tree_object, retain_length_bound):
             node.delete()
 
     if no_node_collapse == 1:
-        return False # no branches collapseds
+        return False # no branches collapsed
     else:
         tree_object.ladderize()
         return tree_object

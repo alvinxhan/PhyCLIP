@@ -100,10 +100,15 @@ if __name__ == '__main__':
     # parse newick tree file
     try:
         newick_tree_string = parse_newick_tree(treepath)
-        tree = ete3.Tree(newick_tree_string, format=5)
-        print ('\nTree file...OK')
     except:
         raise Exception('\nInvalid tree file. Check that the correct path to the NEWICK tree file is given in the first line of the input file.\n')
+
+    try:
+        tree = ete3.Tree(newick_tree_string)
+    except:
+        tree = ete3.Tree(newick_tree_string, format=1)
+
+    print('\nTree file...OK')
 
     # changing tree root
     if params.tree_outgroup or params.midpoint:

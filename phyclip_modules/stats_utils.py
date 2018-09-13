@@ -138,10 +138,10 @@ def qn(data):
 def multiple_testing_correction(pval_dict):
     import statsmodels.api as sm
 
-    nodepair_list = pval_dict.keys()
-    qval_list = sm.stats.multipletests([pval_dict[nodepair] for nodepair in nodepair_list], method='fdr_bh')[1].tolist()
+    dictkeys = pval_dict.keys()
+    qval_list = sm.stats.multipletests([pval_dict[key] for key in dictkeys], method='fdr_bh')[1].tolist()
     qval_dict = {}
-    for _, (i,j) in enumerate(nodepair_list):
+    for _, (i,j) in enumerate(dictkeys):
         qval_dict[(j,i)] = qval_dict[(i,j)] = qval_list[_]
     return qval_dict
 
