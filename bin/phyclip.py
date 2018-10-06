@@ -3,12 +3,13 @@
 # Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)
 # Authors: Alvin X. Han and Edyth Parker
 
-from __future__ import division, print_function
+from __future__ import division
 import ete3
 import re
 import os
 import itertools
 import subprocess
+import argparse
 import numpy as np
 
 from phyclip_modules.stats_utils import qn, multiple_testing_correction, summary_stats, get_cluster_size_distribution
@@ -16,10 +17,9 @@ from phyclip_modules.tree_utils import parse_newick_tree
 from phyclip_modules import get_global_tree_info, phyclip_output, node_leaves_reassociation, clean_up_modules
 
 if __name__ == '__main__':
-
     # parse parameters
-    import argparse
-    parser = argparse.ArgumentParser(description='Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1')
+    version = 1.1
+    parser = argparse.ArgumentParser(description='Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v{}'.format(version))
     
     required_args = parser.add_argument_group('Required')
     required_args.add_argument('-i', '--input_file', type=str, help='Input file. See manual for format details.')
@@ -57,13 +57,12 @@ if __name__ == '__main__':
 
     params = parser.parse_args()
 
-    print ('{}\n\n{:^72}\n{:^72}\n\n{}'.format(''.join(['-']*72), 'Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)', 'Version 1.0', ''.join(['-']*72)))
+    print ('{}\n\n{:^72}\n{:^72}\n\n{}'.format(''.join(['-']*72), 'Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)', 'v{}'.format(version), ''.join(['-']*72)))
 
     # check solver availability
     available_solvers = {}
     try:
         # check for glpsol
-        import subprocess
         cmd = ['glpsol', '--version']
         solver_version = 'glpk_{}'.format(re.search('v\d+\.\d+', subprocess.check_output(cmd)).group())
         available_solvers['glpk'] = solver_version
@@ -482,10 +481,13 @@ if __name__ == '__main__':
             """
 
             print('\nCleaning up clusters...')
-            cleanup_object = clean_up_modules(curr_node_to_descendant_nodes, global_node_to_leaves, global_leafpair_to_distance, curr_node_to_leaves, curr_wcl, cs)
+            cleanup_object = clean_up_modules(curr_node_to_descendant_nodes, global_node_to_leaves, global_leafpair_to_distance, curr_node_to_leaves, curr_wcl, cs, global_leaf_dist_to_node, global_leaf_to_ancestors, global_node_to_parent_node, global_nodepair_to_dist)
 
             # ensure that the most descendant-possible node-id is subtending each cluster
             curr_clusterid_to_taxa, curr_taxon_to_clusterid = cleanup_object.most_desc_nodeid_for_cluster(curr_clusterid_to_taxa, curr_taxon_to_clusterid)
+
+            # leave-one-out clean up for clusters violating wcl
+            curr_clusterid_to_taxa, curr_taxon_to_clusterid = cleanup_object.loo_wcl_violation(curr_clusterid_to_taxa, curr_taxon_to_clusterid)
 
             # remove cluster-size sensitivity-induced clusters
             if params.subsume_sensitivity_induced_clusters:

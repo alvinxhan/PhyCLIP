@@ -10,7 +10,7 @@ from setuptools import setup
 
 setup(
     name = 'PhyCLIP',
-    version = '0.1',
+    version = '1.1',
     author = 'Alvin X. Han and Edyth Parker',
     author_email = 'hanxc@bii.a-star.edu.sg',
     description = ('Phylogenetic clustering by linear integer programming.'),

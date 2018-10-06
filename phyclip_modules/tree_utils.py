@@ -179,7 +179,6 @@ class node_leaves_reassociation(object):
 
                 # return leaves to keep for node AND descendant nodes (which all of its subtended leaves are to be removed) to dissociate
                 return sorted_leaves[l_index+1:], old_descendant_nodes_to_dissociate, reduced_mean_pwdist
-                break
 
         return False
 
@@ -911,13 +910,91 @@ class node_leaves_reassociation(object):
 '''
 # clean-up modules
 class clean_up_modules(object):
-    def __init__(self, current_node_to_descendant_nodes=None, node_to_leaves=None, leafpair_to_distance=None, current_node_to_leaves=None, within_cluster_limit=None, min_cluster_size=None):
+    def __init__(self, current_node_to_descendant_nodes=None, node_to_leaves=None, leafpair_to_distance=None, current_node_to_leaves=None, within_cluster_limit=None, min_cluster_size=None, leaf_dist_to_node=None, leaf_to_ancestors=None, node_to_parent_node=None, nodepair_to_dist=None):
         self.current_node_to_descendant_nodes = current_node_to_descendant_nodes
         self.node_to_leaves = node_to_leaves
         self.leafpair_to_distance = leafpair_to_distance
         self.current_node_to_leaves = current_node_to_leaves
         self.within_cluster_limit = within_cluster_limit
         self.min_cluster_size = min_cluster_size
+        self.leaf_dist_to_node = leaf_dist_to_node
+        self.leaf_to_ancestors = leaf_to_ancestors
+        self.node_to_parent_node = node_to_parent_node
+        self.nodepair_to_dist = nodepair_to_dist
+
+    def get_pwdist_from_leaf_distances_to_node_cleanup(self, leaves_dist_to_node, desc_node_to_leaves):
+        n_i = len(leaves_dist_to_node)
+
+        term_a = (n_i-1)*sum(leaves_dist_to_node)
+
+        term_b = 0
+        for desc_node, desc_node_leaves in desc_node_to_leaves.items():
+            n_desc = len(desc_node_leaves)
+            parent_node = self.node_to_parent_node[desc_node]
+            term_b += (n_desc)*(n_desc-1)*self.nodepair_to_dist[parent_node][desc_node]
+
+        return 2*(term_a-term_b)/(n_i*(n_i-1))
+
+    def leave_one_out_leaf_reduction_cleanup(self, sorted_leaves, main_node):
+        # note that sorted_leaves is already reverse sorted by distance to main_node
+        # immediate return if len(sorted_leaves) < self.min_cluster_size
+        if len(sorted_leaves) < self.min_cluster_size:
+            return False
+
+        for l_index in range(-1, len(sorted_leaves), 1):
+            if l_index + 1 == len(sorted_leaves) - self.min_cluster_size:
+                return False
+
+            remaining_leaves_to_node_dist = {}
+            remaining_descendant_nodes_to_leaves = {}
+
+            # start from not having any leaves removed
+            for leaf in sorted_leaves[l_index + 1:]:
+                remaining_leaves_to_node_dist[leaf] = self.leaf_dist_to_node[leaf][main_node]
+
+                try:
+                    desc_nodes_subtending_leaf = list(set(self.current_node_to_descendant_nodes[main_node])&set(self.leaf_to_ancestors[leaf]))
+                except:
+                    desc_nodes_subtending_leaf = []
+
+                for rdn in desc_nodes_subtending_leaf:
+                    try:
+                        remaining_descendant_nodes_to_leaves[rdn].append(leaf)
+                    except:
+                        remaining_descendant_nodes_to_leaves[rdn] = [leaf]
+
+            reduced_mean_pwdist = self.get_pwdist_from_leaf_distances_to_node_cleanup(remaining_leaves_to_node_dist.values(), remaining_descendant_nodes_to_leaves)
+
+            # break if <= self.within_cluster_limit and dissociate
+            if reduced_mean_pwdist <= self.within_cluster_limit:
+                # return leaves to keep for node
+                return sorted_leaves[l_index+1:]
+
+        return False
+
+    def loo_wcl_violation(self, clusterid_to_taxa, taxon_to_clusterid):
+
+        for clusterid, taxa in clusterid_to_taxa.items():
+            # check mean pairwise distance
+            new_pwdist = [self.leafpair_to_distance[(i, j)] for i,j in itertools.combinations(taxa, 2)]
+
+            if np.mean(new_pwdist) > self.within_cluster_limit:
+                # reverse sort clustered taxa by distance to node
+                rsorted_taxa = sorted(taxa, key=lambda leaf: self.leaf_dist_to_node[leaf][clusterid], reverse=True)
+
+                loo_output = self.leave_one_out_leaf_reduction_cleanup(rsorted_taxa, clusterid)
+
+                if loo_output == False:
+                    # remvoe entire cluster since it entirely violates the within cluster limit
+                    del clusterid_to_taxa[clusterid]
+                    for taxon in taxa:
+                        del taxon_to_clusterid[taxon]
+                else:
+                    # if we could still have a cluster after removing "outlying" taxa
+                    for taxon in list(set(taxa) - set(loo_output)):
+                        del taxon_to_clusterid[taxon]
+
+        return clusterid_to_taxa, taxon_to_clusterid
 
     def most_desc_nodeid_for_cluster(self, clusterid_to_taxa, taxon_to_clusterid):
         # clean up cluster id - must follow most descendant node
