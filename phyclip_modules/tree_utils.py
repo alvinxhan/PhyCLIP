@@ -942,7 +942,7 @@ class clean_up_modules(object):
             return False
 
         for l_index in range(-1, len(sorted_leaves), 1):
-            if l_index + 1 == len(sorted_leaves) - self.min_cluster_size:
+            if len(sorted_leaves[l_index+1:]) < self.min_cluster_size:
                 return False
 
             remaining_leaves_to_node_dist = {}
