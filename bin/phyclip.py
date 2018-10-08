@@ -29,6 +29,7 @@ if __name__ == '__main__':
     analyses_aid.add_argument('--no_treeinfo', action='store_true', help='Stop PhyCLIP from generating *_treeinfo.txt file.')
     analyses_aid.add_argument('--pdf_tree', action='store_true', help='PDF tree output annotated with cluster results.')
     analyses_aid.add_argument('--optimise', choices=['intermediate', 'high'], help='PhyCLIP automatically searches for the clustering result from the OPTIMAL input parameter set. See documentation for details. Must have >1 input parameter set in input file.')
+    #analyses_aid.add_argument('--cluster_comparison', type=str, help='Expected/previous clustering information of sequences to calculate variation of information with current clustering results. File format same as PhyCLIP cluster text file output (i.e. CLUSTER-ID{tab}SEQUENCE-NAME).')
 
     analyses_options = parser.add_argument_group('Analysis options')
     analyses_options.add_argument('--tree_outgroup', type=str, help='Taxon (name as appeared in tree) to be set as outgroup for rooting.')
@@ -381,7 +382,7 @@ if __name__ == '__main__':
         curr_list_of_ancestral_node = sorted([node for node, leaves in global_node_to_leaves.items() if len(leaves) >= cs])
 
         # reassociate subtrees and leaves based on curr_wcl
-        print ('\nReassociating subtrees/leaves...')
+        print ('\nDistal dissociation...')
         curr_node_to_leaves, curr_node_to_descendant_nodes, curr_node_to_mean_pwdist = [], [], [] # clear memory
 
         # if (cs, gam) set is repeated, check if we have performed reassociation analyses before to speed up runs
@@ -420,7 +421,6 @@ if __name__ == '__main__':
             curr_nodepair_to_qval = multiple_testing_correction(curr_nodepair_to_pval)
 
         ### --- PARAMETER-SPECIFIC TREE INFORMATION --- ###
-
         # Build ILP model and solve
         if params.solver == 'gurobi':
             from phyclip_modules.gurobi_solver import gurobi_solver
@@ -490,7 +490,7 @@ if __name__ == '__main__':
             curr_clusterid_to_taxa, curr_taxon_to_clusterid = cleanup_object.loo_wcl_violation(curr_clusterid_to_taxa, curr_taxon_to_clusterid)
 
             # remove cluster-size sensitivity-induced clusters
-            if params.subsume_sensitivity_induced_clusters:
+            if params.subsume_sensitivity_induced_clusters == 1:
                 curr_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa) # determine distribution of clusters
                 curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_sensitivity_subsumed_taxa_to_clusterid = cleanup_object.subsume_subclusters_under_x_percentile(curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_clusterlen_distribution, params.sensitivity_percentile)
 
@@ -501,7 +501,7 @@ if __name__ == '__main__':
             curr_clusterid_to_taxa, curr_taxon_to_clusterid = cleanup_object.remove_clusters_below_cs(curr_clusterid_to_taxa, curr_taxon_to_clusterid)
 
             # further subsume any sub-clusters into parent clusters which taxa set include that of sub-clusters
-            if params.subsume_subclusters:
+            if params.subsume_subclusters == 1:
                 print ('Subsume sub-clusters within parent...')
                 curr_clusterlen_distribution = get_cluster_size_distribution(curr_clusterid_to_taxa) # get cluster size distribution
                 curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_nosub_taxa_to_clusterid = cleanup_object.subsume_subclusters_under_x_percentile(curr_clusterid_to_taxa, curr_taxon_to_clusterid, curr_clusterlen_distribution, 100)

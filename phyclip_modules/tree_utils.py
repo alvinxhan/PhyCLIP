@@ -993,6 +993,7 @@ class clean_up_modules(object):
                     # if we could still have a cluster after removing "outlying" taxa
                     for taxon in list(set(taxa) - set(loo_output)):
                         del taxon_to_clusterid[taxon]
+                        clusterid_to_taxa[clusterid].remove(taxon)
 
         return clusterid_to_taxa, taxon_to_clusterid
 
