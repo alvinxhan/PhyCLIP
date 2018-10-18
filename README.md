@@ -13,6 +13,8 @@ MANUSCRIPT LINK
 Full documentation: 
 http://github.com/alvinxhan/PhyCLIP/wiki
 
+**N.B. We highly encourage that you go through the ENTIRE DOCUMENTATION before starting your analysis.**
+
 ## Installation
 PhyCLIP is written in Python 2.7 and depends on several python libraries and at least one ILP solver. 
 
@@ -125,7 +127,7 @@ usage: phyclip.py [-h] [-i INPUT_FILE] [--treeinfo TREEINFO] [--no_treeinfo]
                   [--solver_verbose {0,1}] [--solver_check]
                   [--threads THREADS]
 
-Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v0.1
+Phylogenetic Clustering by Linear Integer Programming (PhyCLIP) v1.1
 
 optional arguments:
   -h, --help            show this help message and exit
