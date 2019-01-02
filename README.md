@@ -17,4 +17,4 @@ Full documentation:
 
 **N.B. We highly encourage that you go through the ENTIRE DOCUMENTATION before starting your analysis.**
 
-If you are based in an academic institution, you may go to the [Quickstart](https://github.com/alvinxhan/PhyCLIP/wiki/I.-Quickstart) guide to promptly install and run PhyCLIP using the recommended procedure.
+If you are based in an academic institution, you may go to the [Quickstart](https://github.com/alvinxhan/PhyCLIP/wiki/I.-Quickstart-(Beginners)) guide to promptly install and run PhyCLIP using the recommended procedure.
