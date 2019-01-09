@@ -20,4 +20,4 @@ Full documentation:
 If you are based in an academic institution, you may go to the [Quickstart](https://github.com/alvinxhan/PhyCLIP/wiki/I.-Quickstart-(Beginners)) guide to promptly install and run PhyCLIP using the recommended procedure.  
 
 
-**Clustering results of PhyCLIP maximises inclusivity and thus should not be not be interpreted as taxa linked by rapid transmission events. We reccomend you to use [Phydelity](https://github.com/alvinxhan/Phydelity), a re-purposing of PhyCLIP for the identification of putative transmission clusters.**
+**Clustering results of PhyCLIP maximises inclusivity and thus should not be interpreted as taxa linked by rapid transmission events. We reccomend you to use [Phydelity](https://github.com/alvinxhan/Phydelity), a re-purposing of PhyCLIP for the identification of putative transmission clusters.**
