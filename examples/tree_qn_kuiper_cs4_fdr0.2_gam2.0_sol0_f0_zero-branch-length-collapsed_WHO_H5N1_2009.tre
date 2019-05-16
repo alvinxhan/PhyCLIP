@@ -1,0 +1,471 @@
+#NEXUS
+Begin taxon;
+	Dimensions ntax=230;
+		Taxlabels
+			'a/goose/guangdong/1/1996_{0}_cluster0'
+			'a/hong_kong/156/97_{0}_cluster0'
+			'a/goose/viet_nam/3/2005_{0}_cluster0'
+			'a/hong_kong/483/97_{0}_cluster0'
+			'a/chicken/hong_kong/yu562/2001_{3}_cluster0'
+			'a/chicken/hong_kong/yu562/01_{3}_cluster0'
+			'a/chicken/hong_kong/fy77/01_{3}_cluster0'
+			'a/pheasant/hong_kong/fy155/01_{3}_cluster0'
+			'a/chicken/hong_kong/sf189/2001_{3}_cluster0'
+			'a/duck/guangdong/22/2002_{4}_cluster21'
+			'a/duck/shantou/4003/2003_{}_cluster23'
+			'a/pigeon/hong_kong/sf215/2001_{3}_cluster0'
+			'a/quail/hong_kong/sf203/2001_{3}_cluster0'
+			'a/tree_sparrow/henan/1/2004_{7}'
+			'a/tree_sparrow/henan/2/2004_{7}'
+			'a/chicken/hong_kong/31.4/2002_{4}_cluster21'
+			'a/goose/fujian/bb/2003_{4}_cluster21'
+			'a/duck/guiyang/2231/2005_{4}_cluster21'
+			'a/goose/guiyang/337/2006_{4}_cluster21'
+			'a/chicken/henan/01/2004_{6}_cluster31'
+			'a/teal/china/2798.1/2002_{5}_cluster32'
+			'a/duck/yunan/5133/2005_{7}'
+			'a/goose/yunnan/3315/2005_{7}'
+			'a/beijing/01/2003_{7}'
+			'a/chicken/guiyang/441/2006_{4}_cluster21'
+			'a/chicken/hong_kong/yu22/2002_{8}_cluster23'
+			'a/chicken/hong_kong/61.9/02_{8}_cluster23'
+			'a/chicken/hong_kong/yu777/02_{8}_cluster23'
+			'a/duck/guangxi/50/2001_{8}_cluster23'
+			'a/chicken/henan/12/2004_{8}_cluster23'
+			'a/chicken/hebei/326/2005_{7}'
+			'a/chicken/guiyang/846/2006_{4}_cluster21'
+			'a/blackbird/hunan/1/2004_{6}_cluster31'
+			'a/tree_sparrow/henan/4/2004_{6}_cluster31'
+			'a/swine/anhui/ca/2004_{6}_cluster31'
+			'a/chicken/yichang/lung-1/04_{6}_cluster31'
+			'a/duck/hubei/wg/2002_{6}_cluster31'
+			'a/duck/guangxi/1378/2004_{5}_cluster32'
+			'a/goose/guangxi/914/2004_{5}_cluster32'
+			'a/duck/guangxi/668/2004_{5}_cluster32'
+			'a/wild_duck/guangdong/314/2004_{8}_cluster68'
+			'a/chicken/henan/210/2004_{8}_cluster68'
+			'a/chicken/shanxi/2/2006_{7}'
+			'a/chicken/vietnam/ncvd-016/2008_{7}'
+			'a/chicken/guiyang/1218/2006_{4}_cluster21'
+			'a/goose/guiyang/1175/2006_{4}_cluster21'
+			'a/goose/guangxi/1097/2004_{5}_cluster32'
+			'a/duck/guangxi/1681/2004_{5}_cluster32'
+			'a/duck/guangxi/1311/2004_{5}_cluster32'
+			'a/goose/guangxi/2383/2004_{5}_cluster32'
+			'a/chicken/anhui/t5/2006_{9}_cluster68'
+			'a/chicken/hong_kong/3169.1/2002_{1}_cluster69'
+			'a/chicken/thailand/icrc-v586/2008_{1}_cluster69'
+			'a/chicken/laos/44/2004_{1}_cluster69'
+			'a/chicken/hong_kong/wf157/2003_{9}_cluster68'
+			'a/egret/hong_kong/757.2/2003_{1}_cluster69'
+			'a/thailand/16/2004_{1}_cluster69'
+			'a/thailand/676/2005_{1}_cluster69'
+			'a/chicken/thailand/1/2004_{1}_cluster69'
+			'a/duck/viet_nam/48/2004_{1}_cluster69'
+			'a/viet_nam/1194/2004_{1}_cluster69'
+			'a/viet_nam/1203/2004_{1}_cluster69'
+			'a/chicken/hatay/2004_{1}_cluster69'
+			'a/duck/viet_nam/15/2003_{1}_cluster69'
+			'a/goose/thailand/79/2004_{1}_cluster69'
+			'a/chicken/malaysia/5858/2004_{1}_cluster69'
+			'a/duck/hunan/795/2002_cluster112'
+			'a/chicken/guangdong/174/04_{2.5}_cluster113'
+			'a/duck/guangxi/2775/2005_{9}_cluster68'
+			'a/chicken/hong_kong/3176.3/2002_{1}_cluster69'
+			'a/hong_kong/213/03_{1}_cluster69'
+			'a/chicken/hong_kong/3123.1/2002_{1}_cluster69'
+			'a/chicken/hong_kong/fy157/2003_{1}_cluster69'
+			'a/duck/viet_nam/272/2005_{1}_cluster69'
+			'a/chicken/viet_nam/1/2004_{1}_cluster69'
+			'a/chicken/yunan/115/2004_{2.4}_cluster111'
+			'a/chicken/yunnan/374/2004_{2.4}_cluster111'
+			'a/chicken/hong_kong/yu324/2003_{}_cluster112'
+			'a/chicken/korea/es/2003_{2.5}_cluster113'
+			'a/chicken/yamaguchi/7/2004_{2.5}_cluster113'
+			'a/crow/osaka/102/2004_{2.5}_cluster113'
+			'a/chicken/shantou/4231/2003_{}_cluster113'
+			'a/chicken/shantou/810/05_{2.3.2}_cluster90'
+			'a/pheasant/shantou/44/2004_{2.3.2}_cluster90'
+			'a/chicken/guangxi/604/2005_{2.3.2}_cluster90'
+			'a/chinese_pond_heron/hong_kong/18/2005_{2.3.2}_cluster90'
+			'a/duck/guiyang/3242/2005_{2.3.3}_cluster90'
+			'a/chicken/guiyang/3055/2005_{2.3.3}_cluster90'
+			'a/goose/guiyang/3422/2005_{2.3.3}_cluster90'
+			'a/japanese_white-eye/hong_kong/1038/2006_{2.3.4}_cluster90'
+			'a/duck/fujian/1734/2005_{2.3.4}_cluster90'
+			'a/migratory_duck/jiangxi/1653/2005_{9}_cluster68'
+			'a/hanoi/30408/2005_{1}_cluster69'
+			'a/viet_nam/hn30408/2005_{1}_cluster69'
+			'a/cambodia/jp52a/2005_{1}_cluster69'
+			'a/viet_nam/cl01/2004_{1}_cluster69'
+			'a/chicken/yunnan/447/2005_{2.4}_cluster111'
+			'a/chicken/yunnan/493/2005_{2.4}_cluster111'
+			'a/chicken/guangxi/12/2004_{2.4}_cluster111'
+			'a/duck/guangxi/13/2004_{2.4}_cluster111'
+			'a/chicken/indonesia/7/2003_{2.1.1}_cluster112'
+			'a/chicken/indonesia/11/2003_{2.1.1}_cluster112'
+			'a/chicken/indonesia/pa/2003_{2.1.1}_cluster112'
+			'a/chicken/kyoto/3/2004_{2.5}_cluster113'
+			'a/crow/kyoto/53/2004_{2.5}_cluster113'
+			'a/migratory_duck/jiangxi/2295/2005_{2.2}_cluster113'
+			'a/duck/henan/303/2004_{2.3.1}_cluster90'
+			'a/duck/hunan/101/2004_{2.3.1}_cluster90'
+			'a/duck/henan/152/2005_{2.3.1}_cluster90'
+			'a/duck/hunan/127/2005_{2.3.1}_cluster90'
+			'a/chicken/guangxi/2461/2004_{2.3.2}_cluster90'
+			'a/chicken/malaysia/5223/2007_{2.3.4}_cluster90'
+			'a/chicken/malaysia/935/2006_{2.3.4}_cluster90'
+			'a/goose/shantou/1621/05_{9}_cluster68'
+			'a/duck/viet_nam/148/2004_{1}_cluster69'
+			'a/mallard_duck/viet_nam/133/2004_{1}_cluster69'
+			'a/duck/viet_nam/283/2005_{1}_cluster69'
+			'a/duck/viet_nam/258/2004_{1}_cluster69'
+			'a/chicken/indonesia/5/2004_{2.1.1}_cluster112'
+			'a/chicken/indonesia/bl/2003_{2.1.1}_cluster112'
+			'a/bar-headed_goose/qinghai/12/2005_{2.2}_cluster113'
+			'a/migratory_duck/jiangxi/2136/2005_{2.2}_cluster113'
+			'a/chicken/afghanistan/1573-7/2006_{2.2}_cluster113'
+			'a/chicken/hunan/999/2005_{2.3.1}_cluster90'
+			'a/duck/hunan/139/2005_{2.3.1}_cluster90'
+			'a/duck/hunan/149/2005_{2.3.1}_cluster90'
+			'a/duck/hunan/1265/2005_{2.3.2}_cluster90'
+			'a/duck/fujian/11094/2005_{2.3.4}_cluster90'
+			'a/duck/shantou/13323/2005_{2.3.4}_cluster90'
+			'a/goose/guangxi/532/2006_{2.3.4}_cluster90'
+			'a/goose/shantou/3265/2006_{2.3.4}_cluster90'
+			'a/guangzhou/1/2006_{2.3.4}_cluster90'
+			'a/jiangsu/1/2007_{2.3.4}_cluster90'
+			'a/common_magpie/hong_kong/645/2006_{2.3.4}_cluster90'
+			'a/muscovy_duck/vietnam/39/2007_{2.3.4}_cluster90'
+			'a/chicken/guiyang/29/2006_{2.3.4}_cluster90'
+			'a/chicken/fujian/1042/2005_{9}_cluster68'
+			'a/duck/fujian/897/2005_{9}_cluster68'
+			'a/viet_nam/cl100/2004_{1}_cluster69'
+			'a/viet_nam/jphn30321/2005_{1}_cluster69'
+			'a/viet_nam/jp14/2005_{1}_cluster69'
+			'a/chicken/viet_nam/398/2005_{1}_cluster69'
+			'a/chicken/indonesia/r134/03_{2.1.1}_cluster197'
+			'a/chicken/gunung_kidal/bbvw/2005_{2.1.3}_cluster197'
+			'a/chicken/nigeria/1047-8/2006_{2.2}_cluster113'
+			'a/swan/astrakhan/1/2005_{2.2}_cluster113'
+			'a/bar-headed_goose/qinghai/1a/2005_{2.2}_cluster113'
+			'a/whooper_swan/mongolia/244/2005_{2.2}_cluster113'
+			'a/duck/novosibirsk/02/2005_{2.2}_cluster232'
+			'a/guinea_fowl/shantou/1341/2006_{2.2}_cluster232'
+			'a/duck/hunan/856/2006_{2.3.4}_cluster90'
+			'a/goose/yunan/1136/2006_{2.3.4}_cluster90'
+			'a/duck/fujian/668/2006_{2.3.4}_cluster90'
+			'a/anhui/2/2005_{2.3.4}_cluster90'
+			'a/duck/guiyang/293/2006_{2.3.4}_cluster90'
+			'a/anhui/1/2005_{2.3.4}_cluster90'
+			'a/duck/hunan/5106/2005_{2.3.4}_cluster90'
+			'a/guangxi/1/2005_{2.3.4}_cluster90'
+			'a/duck/vietnam/38/2007_{2.3.4}_cluster90'
+			'a/muscovy_duck/vietnam/49/2007_{2.3.4}_cluster90'
+			'a/magpie_robin/hong_kong/75/2006_{2.3.4}_cluster90'
+			'a/chicken/hong_kong/282/2006_{2.3.4}_cluster90'
+			'a/goose/guangxi/4513/2005_{2.3.4}_cluster90'
+			'a/duck/vietnam/37/2007_{2.3.4}_cluster253'
+			'a/duck/vietnam/1231/2005_{1}_cluster69'
+			'a/chicken/simalungun/bppvi/2005_{2.1.2}_cluster262'
+			'a/goose/hungary/3413/2007_{2.2}_cluster232'
+			'a/goose/guangxi/345/2005_{2.3.2}_cluster90'
+			'a/duck/laos/3295/2006_{2.3.4}_cluster90'
+			'a/duck/laos/3295/2006_{}_cluster90'
+			'a/china/gd02/2006_{2.3.4}_cluster90'
+			'a/shenzhen/406h/2006_{2.3.4}_cluster90'
+			'a/chicken/nongkhai/niah-400802/2007_{2.3.4}_cluster90'
+			'a/muscovy_duck/vietnam/54/2007_{2.3.4}_cluster253'
+			'a/duck/vietnam/1233/2005_{1}_cluster69'
+			'a/chicken/dairi/bppvi/2005_{2.1.2}_cluster262'
+			'a/indonesia/160h/2005_{2.1.3}_cluster197'
+			'a/indonesia/7/2005_{2.1.3}_cluster197'
+			'a/indonesia/5/2005_{2.1.3}_cluster197'
+			'a/chicken/nigeria/641/2006_{2.2}_cluster232'
+			'a/nigeria/6/07_{2.2}_cluster232'
+			'a/iraq/1/2006_{2.2}_cluster232'
+			'a/turkey/15/2006_{2.2}_cluster232'
+			'a/cygnus_olor/italy/808/2006_{2.2}_cluster232'
+			'a/turkey/turkey/1/2005_{2.2}_cluster232'
+			'a/duck/yunan/4400/2005_{2.3.2}_cluster90'
+			'a/duck/guangxi/89/2006_{2.3.2}_cluster90'
+			'a/owstons_civet/viet_nam/1/2005_{2.3.2}_cluster273'
+			'a/duck/vietnam/568/2005_{2.3.2}_cluster273'
+			'a/goose/guangxi/3316/2005_{2.3.2}_cluster273'
+			'a/whooper_swan/hokkaido/2/2008_{2.3.2}_cluster273'
+			'a/chicken/nakhonphanom/niah113718/2006_{2.3.4}_cluster90'
+			'a/chicken/thailand/np-172/2006_{2.3.4}_cluster90'
+			'a/muscovy_duck/vietnam/51/2007_{2.3.4}_cluster253'
+			'a/muscovy_duck/vietnam/48/2007_{2.3.4}_cluster253'
+			'a/muscovy_duck/vietnam/57/2007_{2.3.4}_cluster253'
+			'a/cambodia/r0405050/2007_{1}_cluster69'
+			'a/indonesia/cdc595/2006_{2.1.2}_cluster262'
+			'a/indonesia/cdc594/2006_{2.1.2}_cluster262'
+			'a/indonesia/cdc596/2006_{2.1.2}_cluster262'
+			'a/indonesia/cdc596/2006_{}_cluster262'
+			'a/egypt/1394-namru3/2007_{2.2}_cluster232'
+			'a/chicken/egypt/1300-namru3/2007_{2.2}_cluster232'
+			'a/goose/guangxi/3017/2005_{2.3.2}_cluster90'
+			'a/duck/yunnan/1126/2006_{2.3.2}_cluster90'
+			'a/chicken/primorje/1/2008_{2.3.2}_cluster273'
+			'a/viet_nam/hn31242/2007_{2.3.4}_cluster253'
+			'a/muscovy_duck/vietnam/41/2007_{2.3.4}_cluster253'
+			'a/muscovy_duck/vietnam/56/2007_{2.3.4}_cluster253'
+			'a/duck/vietnam/1/2007_{1}_cluster69'
+			'a/indonesia/542h/2006_{2.1.3}_cluster321'
+			'a/indonesia/cdc887/2006_{2.1.3}_cluster321'
+			'a/indonesia/cdc1031/2007_{2.1.3}_cluster321'
+			'a/duck/egypt/22533/2006_{2.2}_cluster232'
+			'a/egypt/2321-namru3/2007_{2.2}_cluster232'
+			'a/egypt/2256-namru3/2007_{2.2}_cluster232'
+			'a/whooper_swan/akita/1/2008_{2.3.2}_cluster273'
+			'a/whooper_swan/hokkaido/1/2008_{2.3.2}_cluster273'
+			'a/chicken/vietnam/15/2007_{1}_cluster69'
+			'a/indonesia/583h/2006_{2.1.3}_cluster321'
+			'a/indonesia/cdc940/2006_{2.1.3}_cluster321'
+			'a/indonesia/cdc1032/2007_{2.1.3}_cluster321'
+			'a/egypt/3300-namru3/2008_{2.2}_cluster232'
+			'a/chicken/egypt/9403namru3-clevb214/2007_{2.2}_cluster232'
+			'a/chicken/egypt/088s-nlqp/2008_{2.2}_cluster232'
+			'a/chicken/egypt/9402namru3-clevb213/2007_{2.2}_cluster232'
+			'a/duck/vietnam/2/2007_{1}_cluster69'
+			'a/muscovy_duck/vietnam/4/2007_{1}_cluster69'
+			'a/indonesia/cdc1046/2007_{2.1.3}_cluster321'
+			'a/indonesia/cdc1047/2007_{2.1.3}_cluster321'
+			;
+End;
+Begin trees;
+	Translate
+		   1 'a/goose/guangdong/1/1996_{0}_cluster0',
+		   2 'a/hong_kong/156/97_{0}_cluster0',
+		   3 'a/goose/viet_nam/3/2005_{0}_cluster0',
+		   4 'a/hong_kong/483/97_{0}_cluster0',
+		   5 'a/chicken/hong_kong/yu562/2001_{3}_cluster0',
+		   6 'a/chicken/hong_kong/yu562/01_{3}_cluster0',
+		   7 'a/chicken/hong_kong/fy77/01_{3}_cluster0',
+		   8 'a/pheasant/hong_kong/fy155/01_{3}_cluster0',
+		   9 'a/chicken/hong_kong/sf189/2001_{3}_cluster0',
+		  10 'a/duck/guangdong/22/2002_{4}_cluster21',
+		  11 'a/duck/shantou/4003/2003_{}_cluster23',
+		  12 'a/pigeon/hong_kong/sf215/2001_{3}_cluster0',
+		  13 'a/quail/hong_kong/sf203/2001_{3}_cluster0',
+		  14 'a/tree_sparrow/henan/1/2004_{7}',
+		  15 'a/tree_sparrow/henan/2/2004_{7}',
+		  16 'a/chicken/hong_kong/31.4/2002_{4}_cluster21',
+		  17 'a/goose/fujian/bb/2003_{4}_cluster21',
+		  18 'a/duck/guiyang/2231/2005_{4}_cluster21',
+		  19 'a/goose/guiyang/337/2006_{4}_cluster21',
+		  20 'a/chicken/henan/01/2004_{6}_cluster31',
+		  21 'a/teal/china/2798.1/2002_{5}_cluster32',
+		  22 'a/duck/yunan/5133/2005_{7}',
+		  23 'a/goose/yunnan/3315/2005_{7}',
+		  24 'a/beijing/01/2003_{7}',
+		  25 'a/chicken/guiyang/441/2006_{4}_cluster21',
+		  26 'a/chicken/hong_kong/yu22/2002_{8}_cluster23',
+		  27 'a/chicken/hong_kong/61.9/02_{8}_cluster23',
+		  28 'a/chicken/hong_kong/yu777/02_{8}_cluster23',
+		  29 'a/duck/guangxi/50/2001_{8}_cluster23',
+		  30 'a/chicken/henan/12/2004_{8}_cluster23',
+		  31 'a/chicken/hebei/326/2005_{7}',
+		  32 'a/chicken/guiyang/846/2006_{4}_cluster21',
+		  33 'a/blackbird/hunan/1/2004_{6}_cluster31',
+		  34 'a/tree_sparrow/henan/4/2004_{6}_cluster31',
+		  35 'a/swine/anhui/ca/2004_{6}_cluster31',
+		  36 'a/chicken/yichang/lung-1/04_{6}_cluster31',
+		  37 'a/duck/hubei/wg/2002_{6}_cluster31',
+		  38 'a/duck/guangxi/1378/2004_{5}_cluster32',
+		  39 'a/goose/guangxi/914/2004_{5}_cluster32',
+		  40 'a/duck/guangxi/668/2004_{5}_cluster32',
+		  41 'a/wild_duck/guangdong/314/2004_{8}_cluster68',
+		  42 'a/chicken/henan/210/2004_{8}_cluster68',
+		  43 'a/chicken/shanxi/2/2006_{7}',
+		  44 'a/chicken/vietnam/ncvd-016/2008_{7}',
+		  45 'a/chicken/guiyang/1218/2006_{4}_cluster21',
+		  46 'a/goose/guiyang/1175/2006_{4}_cluster21',
+		  47 'a/goose/guangxi/1097/2004_{5}_cluster32',
+		  48 'a/duck/guangxi/1681/2004_{5}_cluster32',
+		  49 'a/duck/guangxi/1311/2004_{5}_cluster32',
+		  50 'a/goose/guangxi/2383/2004_{5}_cluster32',
+		  51 'a/chicken/anhui/t5/2006_{9}_cluster68',
+		  52 'a/chicken/hong_kong/3169.1/2002_{1}_cluster69',
+		  53 'a/chicken/thailand/icrc-v586/2008_{1}_cluster69',
+		  54 'a/chicken/laos/44/2004_{1}_cluster69',
+		  55 'a/chicken/hong_kong/wf157/2003_{9}_cluster68',
+		  56 'a/egret/hong_kong/757.2/2003_{1}_cluster69',
+		  57 'a/thailand/16/2004_{1}_cluster69',
+		  58 'a/thailand/676/2005_{1}_cluster69',
+		  59 'a/chicken/thailand/1/2004_{1}_cluster69',
+		  60 'a/duck/viet_nam/48/2004_{1}_cluster69',
+		  61 'a/viet_nam/1194/2004_{1}_cluster69',
+		  62 'a/viet_nam/1203/2004_{1}_cluster69',
+		  63 'a/chicken/hatay/2004_{1}_cluster69',
+		  64 'a/duck/viet_nam/15/2003_{1}_cluster69',
+		  65 'a/goose/thailand/79/2004_{1}_cluster69',
+		  66 'a/chicken/malaysia/5858/2004_{1}_cluster69',
+		  67 'a/duck/hunan/795/2002_cluster112',
+		  68 'a/chicken/guangdong/174/04_{2.5}_cluster113',
+		  69 'a/duck/guangxi/2775/2005_{9}_cluster68',
+		  70 'a/chicken/hong_kong/3176.3/2002_{1}_cluster69',
+		  71 'a/hong_kong/213/03_{1}_cluster69',
+		  72 'a/chicken/hong_kong/3123.1/2002_{1}_cluster69',
+		  73 'a/chicken/hong_kong/fy157/2003_{1}_cluster69',
+		  74 'a/duck/viet_nam/272/2005_{1}_cluster69',
+		  75 'a/chicken/viet_nam/1/2004_{1}_cluster69',
+		  76 'a/chicken/yunan/115/2004_{2.4}_cluster111',
+		  77 'a/chicken/yunnan/374/2004_{2.4}_cluster111',
+		  78 'a/chicken/hong_kong/yu324/2003_{}_cluster112',
+		  79 'a/chicken/korea/es/2003_{2.5}_cluster113',
+		  80 'a/chicken/yamaguchi/7/2004_{2.5}_cluster113',
+		  81 'a/crow/osaka/102/2004_{2.5}_cluster113',
+		  82 'a/chicken/shantou/4231/2003_{}_cluster113',
+		  83 'a/chicken/shantou/810/05_{2.3.2}_cluster90',
+		  84 'a/pheasant/shantou/44/2004_{2.3.2}_cluster90',
+		  85 'a/chicken/guangxi/604/2005_{2.3.2}_cluster90',
+		  86 'a/chinese_pond_heron/hong_kong/18/2005_{2.3.2}_cluster90',
+		  87 'a/duck/guiyang/3242/2005_{2.3.3}_cluster90',
+		  88 'a/chicken/guiyang/3055/2005_{2.3.3}_cluster90',
+		  89 'a/goose/guiyang/3422/2005_{2.3.3}_cluster90',
+		  90 'a/japanese_white-eye/hong_kong/1038/2006_{2.3.4}_cluster90',
+		  91 'a/duck/fujian/1734/2005_{2.3.4}_cluster90',
+		  92 'a/migratory_duck/jiangxi/1653/2005_{9}_cluster68',
+		  93 'a/hanoi/30408/2005_{1}_cluster69',
+		  94 'a/viet_nam/hn30408/2005_{1}_cluster69',
+		  95 'a/cambodia/jp52a/2005_{1}_cluster69',
+		  96 'a/viet_nam/cl01/2004_{1}_cluster69',
+		  97 'a/chicken/yunnan/447/2005_{2.4}_cluster111',
+		  98 'a/chicken/yunnan/493/2005_{2.4}_cluster111',
+		  99 'a/chicken/guangxi/12/2004_{2.4}_cluster111',
+		 100 'a/duck/guangxi/13/2004_{2.4}_cluster111',
+		 101 'a/chicken/indonesia/7/2003_{2.1.1}_cluster112',
+		 102 'a/chicken/indonesia/11/2003_{2.1.1}_cluster112',
+		 103 'a/chicken/indonesia/pa/2003_{2.1.1}_cluster112',
+		 104 'a/chicken/kyoto/3/2004_{2.5}_cluster113',
+		 105 'a/crow/kyoto/53/2004_{2.5}_cluster113',
+		 106 'a/migratory_duck/jiangxi/2295/2005_{2.2}_cluster113',
+		 107 'a/duck/henan/303/2004_{2.3.1}_cluster90',
+		 108 'a/duck/hunan/101/2004_{2.3.1}_cluster90',
+		 109 'a/duck/henan/152/2005_{2.3.1}_cluster90',
+		 110 'a/duck/hunan/127/2005_{2.3.1}_cluster90',
+		 111 'a/chicken/guangxi/2461/2004_{2.3.2}_cluster90',
+		 112 'a/chicken/malaysia/5223/2007_{2.3.4}_cluster90',
+		 113 'a/chicken/malaysia/935/2006_{2.3.4}_cluster90',
+		 114 'a/goose/shantou/1621/05_{9}_cluster68',
+		 115 'a/duck/viet_nam/148/2004_{1}_cluster69',
+		 116 'a/mallard_duck/viet_nam/133/2004_{1}_cluster69',
+		 117 'a/duck/viet_nam/283/2005_{1}_cluster69',
+		 118 'a/duck/viet_nam/258/2004_{1}_cluster69',
+		 119 'a/chicken/indonesia/5/2004_{2.1.1}_cluster112',
+		 120 'a/chicken/indonesia/bl/2003_{2.1.1}_cluster112',
+		 121 'a/bar-headed_goose/qinghai/12/2005_{2.2}_cluster113',
+		 122 'a/migratory_duck/jiangxi/2136/2005_{2.2}_cluster113',
+		 123 'a/chicken/afghanistan/1573-7/2006_{2.2}_cluster113',
+		 124 'a/chicken/hunan/999/2005_{2.3.1}_cluster90',
+		 125 'a/duck/hunan/139/2005_{2.3.1}_cluster90',
+		 126 'a/duck/hunan/149/2005_{2.3.1}_cluster90',
+		 127 'a/duck/hunan/1265/2005_{2.3.2}_cluster90',
+		 128 'a/duck/fujian/11094/2005_{2.3.4}_cluster90',
+		 129 'a/duck/shantou/13323/2005_{2.3.4}_cluster90',
+		 130 'a/goose/guangxi/532/2006_{2.3.4}_cluster90',
+		 131 'a/goose/shantou/3265/2006_{2.3.4}_cluster90',
+		 132 'a/guangzhou/1/2006_{2.3.4}_cluster90',
+		 133 'a/jiangsu/1/2007_{2.3.4}_cluster90',
+		 134 'a/common_magpie/hong_kong/645/2006_{2.3.4}_cluster90',
+		 135 'a/muscovy_duck/vietnam/39/2007_{2.3.4}_cluster90',
+		 136 'a/chicken/guiyang/29/2006_{2.3.4}_cluster90',
+		 137 'a/chicken/fujian/1042/2005_{9}_cluster68',
+		 138 'a/duck/fujian/897/2005_{9}_cluster68',
+		 139 'a/viet_nam/cl100/2004_{1}_cluster69',
+		 140 'a/viet_nam/jphn30321/2005_{1}_cluster69',
+		 141 'a/viet_nam/jp14/2005_{1}_cluster69',
+		 142 'a/chicken/viet_nam/398/2005_{1}_cluster69',
+		 143 'a/chicken/indonesia/r134/03_{2.1.1}_cluster197',
+		 144 'a/chicken/gunung_kidal/bbvw/2005_{2.1.3}_cluster197',
+		 145 'a/chicken/nigeria/1047-8/2006_{2.2}_cluster113',
+		 146 'a/swan/astrakhan/1/2005_{2.2}_cluster113',
+		 147 'a/bar-headed_goose/qinghai/1a/2005_{2.2}_cluster113',
+		 148 'a/whooper_swan/mongolia/244/2005_{2.2}_cluster113',
+		 149 'a/duck/novosibirsk/02/2005_{2.2}_cluster232',
+		 150 'a/guinea_fowl/shantou/1341/2006_{2.2}_cluster232',
+		 151 'a/duck/hunan/856/2006_{2.3.4}_cluster90',
+		 152 'a/goose/yunan/1136/2006_{2.3.4}_cluster90',
+		 153 'a/duck/fujian/668/2006_{2.3.4}_cluster90',
+		 154 'a/anhui/2/2005_{2.3.4}_cluster90',
+		 155 'a/duck/guiyang/293/2006_{2.3.4}_cluster90',
+		 156 'a/anhui/1/2005_{2.3.4}_cluster90',
+		 157 'a/duck/hunan/5106/2005_{2.3.4}_cluster90',
+		 158 'a/guangxi/1/2005_{2.3.4}_cluster90',
+		 159 'a/duck/vietnam/38/2007_{2.3.4}_cluster90',
+		 160 'a/muscovy_duck/vietnam/49/2007_{2.3.4}_cluster90',
+		 161 'a/magpie_robin/hong_kong/75/2006_{2.3.4}_cluster90',
+		 162 'a/chicken/hong_kong/282/2006_{2.3.4}_cluster90',
+		 163 'a/goose/guangxi/4513/2005_{2.3.4}_cluster90',
+		 164 'a/duck/vietnam/37/2007_{2.3.4}_cluster253',
+		 165 'a/duck/vietnam/1231/2005_{1}_cluster69',
+		 166 'a/chicken/simalungun/bppvi/2005_{2.1.2}_cluster262',
+		 167 'a/goose/hungary/3413/2007_{2.2}_cluster232',
+		 168 'a/goose/guangxi/345/2005_{2.3.2}_cluster90',
+		 169 'a/duck/laos/3295/2006_{2.3.4}_cluster90',
+		 170 'a/duck/laos/3295/2006_{}_cluster90',
+		 171 'a/china/gd02/2006_{2.3.4}_cluster90',
+		 172 'a/shenzhen/406h/2006_{2.3.4}_cluster90',
+		 173 'a/chicken/nongkhai/niah-400802/2007_{2.3.4}_cluster90',
+		 174 'a/muscovy_duck/vietnam/54/2007_{2.3.4}_cluster253',
+		 175 'a/duck/vietnam/1233/2005_{1}_cluster69',
+		 176 'a/chicken/dairi/bppvi/2005_{2.1.2}_cluster262',
+		 177 'a/indonesia/160h/2005_{2.1.3}_cluster197',
+		 178 'a/indonesia/7/2005_{2.1.3}_cluster197',
+		 179 'a/indonesia/5/2005_{2.1.3}_cluster197',
+		 180 'a/chicken/nigeria/641/2006_{2.2}_cluster232',
+		 181 'a/nigeria/6/07_{2.2}_cluster232',
+		 182 'a/iraq/1/2006_{2.2}_cluster232',
+		 183 'a/turkey/15/2006_{2.2}_cluster232',
+		 184 'a/cygnus_olor/italy/808/2006_{2.2}_cluster232',
+		 185 'a/turkey/turkey/1/2005_{2.2}_cluster232',
+		 186 'a/duck/yunan/4400/2005_{2.3.2}_cluster90',
+		 187 'a/duck/guangxi/89/2006_{2.3.2}_cluster90',
+		 188 'a/owstons_civet/viet_nam/1/2005_{2.3.2}_cluster273',
+		 189 'a/duck/vietnam/568/2005_{2.3.2}_cluster273',
+		 190 'a/goose/guangxi/3316/2005_{2.3.2}_cluster273',
+		 191 'a/whooper_swan/hokkaido/2/2008_{2.3.2}_cluster273',
+		 192 'a/chicken/nakhonphanom/niah113718/2006_{2.3.4}_cluster90',
+		 193 'a/chicken/thailand/np-172/2006_{2.3.4}_cluster90',
+		 194 'a/muscovy_duck/vietnam/51/2007_{2.3.4}_cluster253',
+		 195 'a/muscovy_duck/vietnam/48/2007_{2.3.4}_cluster253',
+		 196 'a/muscovy_duck/vietnam/57/2007_{2.3.4}_cluster253',
+		 197 'a/cambodia/r0405050/2007_{1}_cluster69',
+		 198 'a/indonesia/cdc595/2006_{2.1.2}_cluster262',
+		 199 'a/indonesia/cdc594/2006_{2.1.2}_cluster262',
+		 200 'a/indonesia/cdc596/2006_{2.1.2}_cluster262',
+		 201 'a/indonesia/cdc596/2006_{}_cluster262',
+		 202 'a/egypt/1394-namru3/2007_{2.2}_cluster232',
+		 203 'a/chicken/egypt/1300-namru3/2007_{2.2}_cluster232',
+		 204 'a/goose/guangxi/3017/2005_{2.3.2}_cluster90',
+		 205 'a/duck/yunnan/1126/2006_{2.3.2}_cluster90',
+		 206 'a/chicken/primorje/1/2008_{2.3.2}_cluster273',
+		 207 'a/viet_nam/hn31242/2007_{2.3.4}_cluster253',
+		 208 'a/muscovy_duck/vietnam/41/2007_{2.3.4}_cluster253',
+		 209 'a/muscovy_duck/vietnam/56/2007_{2.3.4}_cluster253',
+		 210 'a/duck/vietnam/1/2007_{1}_cluster69',
+		 211 'a/indonesia/542h/2006_{2.1.3}_cluster321',
+		 212 'a/indonesia/cdc887/2006_{2.1.3}_cluster321',
+		 213 'a/indonesia/cdc1031/2007_{2.1.3}_cluster321',
+		 214 'a/duck/egypt/22533/2006_{2.2}_cluster232',
+		 215 'a/egypt/2321-namru3/2007_{2.2}_cluster232',
+		 216 'a/egypt/2256-namru3/2007_{2.2}_cluster232',
+		 217 'a/whooper_swan/akita/1/2008_{2.3.2}_cluster273',
+		 218 'a/whooper_swan/hokkaido/1/2008_{2.3.2}_cluster273',
+		 219 'a/chicken/vietnam/15/2007_{1}_cluster69',
+		 220 'a/indonesia/583h/2006_{2.1.3}_cluster321',
+		 221 'a/indonesia/cdc940/2006_{2.1.3}_cluster321',
+		 222 'a/indonesia/cdc1032/2007_{2.1.3}_cluster321',
+		 223 'a/egypt/3300-namru3/2008_{2.2}_cluster232',
+		 224 'a/chicken/egypt/9403namru3-clevb214/2007_{2.2}_cluster232',
+		 225 'a/chicken/egypt/088s-nlqp/2008_{2.2}_cluster232',
+		 226 'a/chicken/egypt/9402namru3-clevb213/2007_{2.2}_cluster232',
+		 227 'a/duck/vietnam/2/2007_{1}_cluster69',
+		 228 'a/muscovy_duck/vietnam/4/2007_{1}_cluster69',
+		 229 'a/indonesia/cdc1046/2007_{2.1.3}_cluster321',
+		 230 'a/indonesia/cdc1047/2007_{2.1.3}_cluster321'
+;
+tree TREE1 = (1[&CLUSTER='0']:0.00313715,((2[&CLUSTER='0']:0.00309733,(3[&CLUSTER='0']:7e-09,4[&CLUSTER='0']:0.00315008)[&NODE_ID='6']:0.00626568)[&NODE_ID='3']:0.00624043,((5[&CLUSTER='0']:0.00233675,(6[&CLUSTER='0']:0.000778605,(9[&CLUSTER='0']:0.00155343,(12[&CLUSTER='0']:7e-09,13[&CLUSTER='0']:7e-09)[&NODE_ID='25']:0.000776324)[&NODE_ID='17']:0.00155296)[&NODE_ID='12']:0.000766534)[&NODE_ID='7']:0.00310626,((7[&CLUSTER='0']:7e-09,8[&CLUSTER='0']:0.00622414)[&NODE_ID='13']:0.00543504,(((14:0.0136298,15:0.00943636)[&NODE_ID='26']:0.00622242,((22:0.0125498,23:0.00469681)[&NODE_ID='39']:0.00799729,(24:0.00800572,(31:0.00441029,(43:0.015354,44:0.0299599)[&NODE_ID='72']:0.00654756)[&NODE_ID='56']:0.0153223)[&NODE_ID='40']:0.003064)[&NODE_ID='27']:0.00293931)[&NODE_ID='20']:0.00877181,(10[&CLUSTER='21']:0.00546296,(16[&CLUSTER='21']:0.00231558,17[&CLUSTER='21']:0.0101789)[&NODE_ID='29']:0.000782763,(18[&CLUSTER='21']:0.00560384,19[&CLUSTER='21']:0.00236294,(25[&CLUSTER='21']:0.00158032,(32[&CLUSTER='21']:6e-09,(45[&CLUSTER='21']:7e-09,46[&CLUSTER='21']:0.000786976)[&NODE_ID='74']:0.000788318)[&NODE_ID='58']:0.00159724)[&NODE_ID='45']:0.00159532)[&NODE_ID='30']:0.0252882)[&NODE_ID='21']:0.00868136)[&NODE_ID='14']:0.000682714,(((20[&CLUSTER='31']:0.0102379,((33[&CLUSTER='31']:0.00548785,34[&CLUSTER='31']:0.00308974)[&NODE_ID='59']:0.0038952,(35[&CLUSTER='31']:0.00386912,36[&CLUSTER='31']:0.0016714,37[&CLUSTER='31']:0.00466188)[&NODE_ID='60']:0.00158362)[&NODE_ID='47']:0.00311636)[&NODE_ID='31']:0.00231568,(21[&CLUSTER='32']:0.00888337,((38[&CLUSTER='32']:0.00464578,39[&CLUSTER='32']:6e-09)[&NODE_ID='61']:0.0062187,(40[&CLUSTER='32']:6e-09,(47[&CLUSTER='32']:0.00154658,48[&CLUSTER='32']:0.00154437,49[&CLUSTER='32']:0.000773848,50[&CLUSTER='32']:0.00386868)[&NODE_ID='83']:0.00154396)[&NODE_ID='62']:0.00627153)[&NODE_ID='49']:0.01359)[&NODE_ID='32']:0.0102173)[&NODE_ID='22']:0.00156091,(11[&CLUSTER='23']:0.0156624,((26[&CLUSTER='23']:0.0126607,27[&CLUSTER='23']:7e-09,28[&CLUSTER='23']:0.00318491)[&NODE_ID='50']:0.000773049,(29[&CLUSTER='23']:0.00309975,30[&CLUSTER='23']:0.00232385,(41[&CLUSTER='68']:0.000772916,42[&CLUSTER='68']:0.0015474,(51[&CLUSTER='68']:0.011238,(55[&CLUSTER='68']:0.00872224,(69[&CLUSTER='68']:0.00938639,(92[&CLUSTER='68']:0.00387668,(114[&CLUSTER='68']:0.00232538,(137[&CLUSTER='68']:0.00154778,138[&CLUSTER='68']:0.00155047)[&NODE_ID='216']:0.00232762)[&NODE_ID='181']:0.000771051)[&NODE_ID='145']:0.00313764)[&NODE_ID='117']:0.00710967)[&NODE_ID='100']:0.00154618)[&NODE_ID='86']:0.00539122)[&NODE_ID='68']:0.000776173)[&NODE_ID='51']:0.000773052,(((52[&CLUSTER='69']:0.00710657,(56[&CLUSTER='69']:0.000772746,(70[&CLUSTER='69']:0.00639968,71[&CLUSTER='69']:0.00477302)[&NODE_ID='119']:0.000665194,(72[&CLUSTER='69']:6e-09,73[&CLUSTER='69']:0.00868562)[&NODE_ID='120']:0.000773179)[&NODE_ID='102']:0.00156346)[&NODE_ID='87']:0.000730109,(53[&CLUSTER='69']:0.0109552,54[&CLUSTER='69']:0.000774211,(57[&CLUSTER='69']:0.0031405,58[&CLUSTER='69']:0.0125973)[&NODE_ID='105']:0.000737775,(59[&CLUSTER='69']:0.000775542,60[&CLUSTER='69']:0.00155253)[&NODE_ID='106']:0.00077395,(61[&CLUSTER='69']:0.00704532,62[&CLUSTER='69']:0.0046983)[&NODE_ID='107']:0.00074329,(63[&CLUSTER='69']:0.00467938,64[&CLUSTER='69']:0.00231942)[&NODE_ID='108']:0.00156036,(65[&CLUSTER='69']:0.000777209,(74[&CLUSTER='69']:0.00705669,(93[&CLUSTER='69']:0.000883934,94[&CLUSTER='69']:0.000779689)[&NODE_ID='151']:0.005417)[&NODE_ID='130']:0.00546608)[&NODE_ID='109']:0.000772382,(66[&CLUSTER='69']:0.000774396,(75[&CLUSTER='69']:0.00858687,(95[&CLUSTER='69']:0.00779768,96[&CLUSTER='69']:0.000775003,(115[&CLUSTER='69']:0.00467634,116[&CLUSTER='69']:0.00155687)[&NODE_ID='186']:0.000771071,(117[&CLUSTER='69']:0.012864,(139[&CLUSTER='69']:0.00080294,140[&CLUSTER='69']:7e-09)[&NODE_ID='220']:0.0104718)[&NODE_ID='187']:0.00123011,(118[&CLUSTER='69']:0.00233352,(141[&CLUSTER='69']:0.000773227,142[&CLUSTER='69']:0.00309924,(165[&CLUSTER='69']:0.0047675,(175[&CLUSTER='69']:0.00155198,(197[&CLUSTER='69']:0.0141779,(210[&CLUSTER='69']:0.00467374,(219[&CLUSTER='69']:0.00395909,(227[&CLUSTER='69']:0.00157996,228[&CLUSTER='69']:0.00314054)[&NODE_ID='375']:0.00157416)[&NODE_ID='362']:0.000763009)[&NODE_ID='344']:0.00396206)[&NODE_ID='315']:0.00309324)[&NODE_ID='293']:0.00629863)[&NODE_ID='260']:0.00075007)[&NODE_ID='222']:0.00154227)[&NODE_ID='188']:0.00468367)[&NODE_ID='153']:0.000773797)[&NODE_ID='132']:0.000776477)[&NODE_ID='110']:0.000774046)[&NODE_ID='88']:0.00860639)[&NODE_ID='69']:0.00542775,((((76[&CLUSTER='111']:0.00188031,77[&CLUSTER='111']:0.0030785)[&NODE_ID='133']:0.00986839,((97[&CLUSTER='111']:0,98[&CLUSTER='111']:0)[&NODE_ID='156']:0.0125464,(99[&CLUSTER='111']:7e-09,100[&CLUSTER='111']:0.000776857)[&NODE_ID='157']:0.0118745)[&NODE_ID='134']:0.00654382)[&NODE_ID='111']:0.00243863,(67[&CLUSTER='112']:0.0024775,(78[&CLUSTER='112']:0.00940652,(101[&CLUSTER='112']:0.00622609,102[&CLUSTER='112']:0.00309981,103[&CLUSTER='112']:0.00154857,(119[&CLUSTER='112']:0.000774587,120[&CLUSTER='112']:6e-09)[&NODE_ID='196']:0.000774083,((143[&CLUSTER='197']:0.00456819,(166[&CLUSTER='262']:0.00544121,(176[&CLUSTER='262']:7e-09,(198[&CLUSTER='262']:0.000775704,199[&CLUSTER='262']:0,200[&CLUSTER='262']:0,201[&CLUSTER='262']:0)[&NODE_ID='317']:0.0149041)[&NODE_ID='295']:0.000786171)[&NODE_ID='262']:0.0114297)[&NODE_ID='225']:0.00103193,(144[&CLUSTER='197']:0.00311699,((177[&CLUSTER='197']:0.00395309,178[&CLUSTER='197']:0.00468201)[&NODE_ID='296']:0.00470421,(179[&CLUSTER='197']:6e-09,((211[&CLUSTER='321']:0.00155882,(220[&CLUSTER='321']:7e-09,221[&CLUSTER='321']:0.00311198)[&NODE_ID='364']:0.00312048)[&NODE_ID='349']:0.00154715,(212[&CLUSTER='321']:0.00233284,213[&CLUSTER='321']:0.00155421,(222[&CLUSTER='321']:0.00077379,(229[&CLUSTER='321']:0.000777175,230[&CLUSTER='321']:7e-09)[&NODE_ID='379']:0.00311862)[&NODE_ID='367']:0.00468633)[&NODE_ID='350']:0.00785938)[&NODE_ID='321']:0.00233944)[&NODE_ID='297']:0.00390002)[&NODE_ID='264']:0.00472981)[&NODE_ID='226']:0.00933493)[&NODE_ID='197']:0.000835439)[&NODE_ID='159']:0.00249788)[&NODE_ID='136']:0.000734925)[&NODE_ID='112']:0.00452325,(68[&CLUSTER='113']:0.00697595,(79[&CLUSTER='113']:0.0023247,80[&CLUSTER='113']:0.00310425,81[&CLUSTER='113']:0.000773892,(104[&CLUSTER='113']:0.000773898,105[&CLUSTER='113']:7e-09)[&NODE_ID='163']:0.00154905)[&NODE_ID='138']:0.00465967,(82[&CLUSTER='113']:0.0062215,(106[&CLUSTER='113']:0.00154938,(121[&CLUSTER='113']:0.000773074,122[&CLUSTER='113']:0.000773089,123[&CLUSTER='113']:0.00465111,(145[&CLUSTER='113']:0.00233021,146[&CLUSTER='113']:0.00311772)[&NODE_ID='230']:0.00154343,(147[&CLUSTER='113']:0.00075039,148[&CLUSTER='113']:0.00473392)[&NODE_ID='231']:0.00473454,(149[&CLUSTER='232']:0.00154793,150[&CLUSTER='232']:0.00309642,(167[&CLUSTER='232']:0.00232069,(180[&CLUSTER='232']:0.00075824,181[&CLUSTER='232']:0.0109353)[&NODE_ID='299']:0.00233728,(182[&CLUSTER='232']:0.00233005,183[&CLUSTER='232']:0.00155)[&NODE_ID='300']:0.00310597,(184[&CLUSTER='232']:0.00387527,185[&CLUSTER='232']:0.00309868,(202[&CLUSTER='232']:0.00780729,203[&CLUSTER='232']:0.00310563,(214[&CLUSTER='232']:0.0015492,215[&CLUSTER='232']:0.0125216,216[&CLUSTER='232']:0.00154884,(223[&CLUSTER='232']:0.0117448,224[&CLUSTER='232']:0.00077481,225[&CLUSTER='232']:0,226[&CLUSTER='232']:0)[&NODE_ID='371']:0.0149048)[&NODE_ID='353']:0.000773759)[&NODE_ID='328']:0.00309887)[&NODE_ID='301']:0.00310174)[&NODE_ID='271']:0.00154688)[&NODE_ID='232']:0.000773148)[&NODE_ID='201']:0.00077359)[&NODE_ID='165']:0.011008)[&NODE_ID='139']:0.00388222)[&NODE_ID='113']:0.0054259)[&NODE_ID='89']:0.000818214,((((107[&CLUSTER='90']:0.000777253,108[&CLUSTER='90']:0.00232976)[&NODE_ID='166']:0.00312636,(109[&CLUSTER='90']:0.000775746,110[&CLUSTER='90']:7e-09,(124[&CLUSTER='90']:0.000776127,125[&CLUSTER='90']:0.000776227,126[&CLUSTER='90']:7e-09)[&NODE_ID='206']:0.000775936)[&NODE_ID='167']:0.0117952)[&NODE_ID='140']:0.00460262,(83[&CLUSTER='90']:0.0149405,84[&CLUSTER='90']:7e-09,85[&CLUSTER='90']:0.00702019,86[&CLUSTER='90']:0.00859869,(111[&CLUSTER='90']:0.00389736,(127[&CLUSTER='90']:0.00389588,((168[&CLUSTER='90']:0.000768032,(186[&CLUSTER='90']:0.00233292,187[&CLUSTER='90']:0.00624541,(204[&CLUSTER='90']:0.00156201,205[&CLUSTER='90']:0.00717824)[&NODE_ID='331']:0.000769826)[&NODE_ID='303']:0.003121)[&NODE_ID='272']:0.00315793,((188[&CLUSTER='273']:0.00314211,189[&CLUSTER='273']:0.0015552,190[&CLUSTER='273']:7e-09)[&NODE_ID='304']:0.00383072,(191[&CLUSTER='273']:0.00373967,(206[&CLUSTER='273']:0.000778753,(217[&CLUSTER='273']:6e-09,218[&CLUSTER='273']:0.00312002)[&NODE_ID='357']:0.00155733)[&NODE_ID='336']:0.0017272)[&NODE_ID='305']:0.025738)[&NODE_ID='273']:0.00244519)[&NODE_ID='237']:0.00153389)[&NODE_ID='208']:0.000780371)[&NODE_ID='172']:0.00233107)[&NODE_ID='141']:0.00545926)[&NODE_ID='114']:0.000878249,((87[&CLUSTER='90']:0.000778217,88[&CLUSTER='90']:7e-09,89[&CLUSTER='90']:0.0015576)[&NODE_ID='142']:0.016874,(90[&CLUSTER='90']:0.00623779,91[&CLUSTER='90']:0.00389979,(112[&CLUSTER='90']:0.00707656,113[&CLUSTER='90']:0.00234766)[&NODE_ID='178']:0.00310356,((128[&CLUSTER='90']:0.00468475,129[&CLUSTER='90']:0.00155368)[&NODE_ID='211']:0.00155793,(130[&CLUSTER='90']:0.00389921,131[&CLUSTER='90']:0.00155813,132[&CLUSTER='90']:0.00313862)[&NODE_ID='212']:0.00155459,(133[&CLUSTER='90']:0.0133274,134[&CLUSTER='90']:0.00475048,(151[&CLUSTER='90']:0.00155318,152[&CLUSTER='90']:0.0062452)[&NODE_ID='245']:0.00155674,(153[&CLUSTER='90']:0.00475385,154[&CLUSTER='90']:0.00232973,155[&CLUSTER='90']:0.00310724,156[&CLUSTER='90']:0.00233056,(169[&CLUSTER='90']:0,170[&CLUSTER='90']:0)[&NODE_ID='280']:0.00310886)[&NODE_ID='246']:0.000775806)[&NODE_ID='213']:0.00155509,(135[&CLUSTER='90']:0.0136024,136[&CLUSTER='90']:0.00235915,(157[&CLUSTER='90']:0.00155621,158[&CLUSTER='90']:0.00155551)[&NODE_ID='249']:0.000774803,(159[&CLUSTER='90']:0.00157766,160[&CLUSTER='90']:0.000799287)[&NODE_ID='250']:0.0087723,(161[&CLUSTER='90']:0.000775825,162[&CLUSTER='90']:0.000783114,(171[&CLUSTER='90']:7e-09,172[&CLUSTER='90']:6e-09)[&NODE_ID='287']:0.0023309)[&NODE_ID='251']:0.00233395,(163[&CLUSTER='90']:0.00155713,(173[&CLUSTER='90']:0.00704761,(192[&CLUSTER='90']:6e-09,193[&CLUSTER='90']:0.00468387)[&NODE_ID='311']:0.00152961)[&NODE_ID='289']:0.00237039)[&NODE_ID='252']:0.00077386,(164[&CLUSTER='253']:0.0133869,(174[&CLUSTER='253']:0.00882851,(194[&CLUSTER='253']:0.000789682,195[&CLUSTER='253']:0.00157966,196[&CLUSTER='253']:0.000789437,(207[&CLUSTER='253']:0.0015523,208[&CLUSTER='253']:7e-09,209[&CLUSTER='253']:0.00158086)[&NODE_ID='342']:0.000775909)[&NODE_ID='313']:0.00626522)[&NODE_ID='291']:0.00308987)[&NODE_ID='253']:0.00236437)[&NODE_ID='214']:0.00155336)[&NODE_ID='179']:0.000776635)[&NODE_ID='143']:0.00963641)[&NODE_ID='115']:0.0021167)[&NODE_ID='90']:0.00541923)[&NODE_ID='70']:0.00470514)[&NODE_ID='52']:0.00239097)[&NODE_ID='34']:0.00159754)[&NODE_ID='23']:0.00308509)[&NODE_ID='15']:0.00551722)[&NODE_ID='8']:0.000782687)[&NODE_ID='4']:0.0126237)[&NODE_ID='2']:0.00313715);
+End;

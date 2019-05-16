@@ -71,6 +71,8 @@ if __name__ == '__main__':
     all_taxa = tree.get_leaf_names()
     # check that we have correctly parsed nexus tree
     if set(all_taxa) != set(id_to_taxon.values()):
+        print set(all_taxa) - set(id_to_taxon.values())
+        print set(id_to_taxon.values()) - set(all_taxa)
         sys.exit('\nCURIOUSER AND CURIOUSER...could not reconcile taxa information and leaves of tree. ASK ALVIN WTF HE DID!\n')
 
     import string
