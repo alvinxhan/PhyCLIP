@@ -1,4 +1,4 @@
-# PhyCLIP (_Phylogenetic Clustering by Linear Integer Programming_)
+# PhyCLIP (_Phylogenetic Clustering by Linear Integer Programming_) v2.0
 
 ## Updates  
 
@@ -16,7 +16,7 @@ PhyCLIP is an integer linear programming (ILP) approach that optimally delineate
 2. Multiple of deviations (_gamma_) from the grand median of the mean pairwise sequence patristic distance that defines the within-cluster divergence limit. 
 3. False discovery rate (_FDR_) to infer that the diversity observed for every combinatorial pair of output clusters is significantly distinct from one another.
 
-A manuscript describing PhyCLIP is published in *Molecular Biology and Evolution*:  
+A manuscript describing PhyCLIP (version 1.0) is published in *Molecular Biology and Evolution*:  
 Phylogenetic Clustering by Linear Integer Programming (PhyCLIP)
 Alvin Xiaochuan Han, Edyth Parker, Frits Scholer, Sebastian Maurer-Stroh, Colin Russell
 *Molecular Biology and Evolution*, msz053; doi: [https://doi.org/10.1093/molbev/msz053](https://doi.org/10.1093/molbev/msz053)
