@@ -3,7 +3,8 @@
 ## Updates  
 
 * 16-May-2019: PhyCLIP version 2.0 release  
-  * PhyCLIP is now fully Cythonised, gaining **~270x improvement in computational speed** for a phylogenetic tree with ~1,200 taxa when compared to version 1.0.  
+  * PhyCLIP is now fully Cythonised. If you have been using PhyCLIP previously, please make sure that Cython is installed (if you are using Anaconda, type ```conda install -c anaconda cython``` into your terminal/command prompt)
+  * **~270x improvement in computational speed** for a phylogenetic tree with ~1,200 taxa when compared to version 1.0.  
   * Decreased peak memory usage by >2x  
   * ```--force``` option available to heuristically force putative subtrees with low divergence (low information) to cluster under the stipulated statistical framework (More information to come in wiki documentation).  
   * Bug fixes.  
