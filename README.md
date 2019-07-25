@@ -1,7 +1,8 @@
-# PhyCLIP (_Phylogenetic Clustering by Linear Integer Programming_) v2.0
+# PhyCLIP (_Phylogenetic Clustering by Linear Integer Programming_)
 
 ## Updates  
 
+* 25-Jul-2019: v2.1 - Fixed int64 declaration for inter-platform compatibility; tested on Windows and MAC 
 * 16-May-2019: PhyCLIP version 2.0 release  
   * PhyCLIP is now fully Cythonised. If you have been using PhyCLIP previously, please make sure that Cython is installed (if you are using Anaconda, type ```conda install -c anaconda cython``` into your terminal/command prompt)
   * **~270x improvement in computational speed** for a phylogenetic tree with ~1,200 taxa when compared to version 1.0.  
