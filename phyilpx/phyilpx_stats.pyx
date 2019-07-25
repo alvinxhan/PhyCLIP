@@ -4,13 +4,18 @@ import cython
 import itertools
 cimport numpy as np
 
+IF UNAME_SYSNAME == "Windows":
+    ctypedef long long _int64
+ELSE:
+    ctypedef long _int64
+
 cdef extern from "math.h":
     float exp "exp" (float)
     float sqrt "sqrt" (float)
     float fabs "fabs" (float)
-    long floor "floor" (float)
+    _int64 floor "floor" (float)
 
-def hypotest(np.ndarray data1, np.ndarray data2, long method):
+def hypotest(np.ndarray data1, np.ndarray data2, _int64 method):
     if method == 1:
         return kuiper(data1, data2)
     else:
@@ -28,7 +33,7 @@ cdef float _kuiper_dist(float q):
     cdef float termbf = 0.
     cdef float dist = 1.
 
-    cdef long j
+    cdef _int64 j
 
     for j in range(1, 100001):
         term = 2*((4*j*j*q*q)-1)*exp(a2*j*j)
@@ -43,10 +48,10 @@ cdef float _kuiper_dist(float q):
 
 @cython.boundscheck(False)
 cdef float kuiper(float [:] data1, float [:] data2):
-    cdef long j1 = 0
-    cdef long j2 = 0
-    cdef long n1 = len(data1)  # number of elements in data1
-    cdef long n2 = len(data2)  # number of elements in data2
+    cdef _int64 j1 = 0
+    cdef _int64 j2 = 0
+    cdef _int64 n1 = len(data1)  # number of elements in data1
+    cdef _int64 n2 = len(data2)  # number of elements in data2
     cdef float eff_n = sqrt((n1*n2)/(n1+n2))
     cdef float fn1 = 0.
     cdef float fn2 = 0.
@@ -77,8 +82,8 @@ cdef float kuiper(float [:] data1, float [:] data2):
 cdef float ks_2samp(float [:] data1, float [:] data2):
     from scipy.stats import kstwobign
 
-    cdef long n1 = len(data1) # number of elements in data1
-    cdef long n2 = len(data2) # number of elements in data2
+    cdef _int64 n1 = len(data1) # number of elements in data1
+    cdef _int64 n2 = len(data2) # number of elements in data2
 
     cdef np.ndarray data_all = np.concatenate((data1, data2)) # concatenate both data arrays and sort - this is basically the array of all possible values
 
@@ -99,20 +104,20 @@ cdef float ks_2samp(float [:] data1, float [:] data2):
 
 @cython.boundscheck(False)
 cdef float weighted_high_median(np.ndarray a, np.ndarray wts):
-    cdef long N = len(a)
-    cdef long wtotal = 0
-    cdef long wdiscardedlow = 0
+    cdef _int64 N = len(a)
+    cdef _int64 wtotal = 0
+    cdef _int64 wdiscardedlow = 0
 
-    cdef long i
+    cdef _int64 i
 
     for i in range(N):
         wtotal += wts[i]
 
-    cdef long nn = N
+    cdef _int64 nn = N
     cdef float trial
-    cdef long wleft
-    cdef long wtrial
-    cdef long ncandidates
+    cdef _int64 wleft
+    cdef _int64 wtrial
+    cdef _int64 ncandidates
 
     while True:
         assert (nn > 0 and len(a) == nn)
@@ -167,11 +172,11 @@ cdef float _qn(np.ndarray data):
     # sort data
     data = np.sort(data)
 
-    cdef long n = len(data)
-    #cdef long h = int(n/2) + 1
-    cdef long h = floor(n/2) + 1
-    #cdef long k = int(h*(h-1)/2)
-    cdef long k = floor(h*(h-1)/2)
+    cdef _int64 n = len(data)
+    #cdef _int64 h = int(n/2) + 1
+    cdef _int64 h = floor(n/2) + 1
+    #cdef _int64 k = int(h*(h-1)/2)
+    cdef _int64 k = floor(h*(h-1)/2)
 
     cdef np.ndarray left = np.arange(n+1,1,-1)
     cdef np.ndarray right = np.full(n, n, dtype = np.int64)
@@ -181,18 +186,18 @@ cdef float _qn(np.ndarray data):
     cdef np.ndarray P = np.zeros(n, dtype = np.int64)
     cdef np.ndarray Q = np.zeros(n, dtype = np.int64)
 
-    #cdef long jhelp = int((n*(n+1))/2)
-    cdef long jhelp = floor((n*(n+1))/2)
-    cdef long knew = k+jhelp
-    cdef long nL = jhelp
-    cdef long nR = n*n
-    cdef long found = 0
+    #cdef _int64 jhelp = int((n*(n+1))/2)
+    cdef _int64 jhelp = floor((n*(n+1))/2)
+    cdef _int64 knew = k+jhelp
+    cdef _int64 nL = jhelp
+    cdef _int64 nR = n*n
+    cdef _int64 found = 0
     cdef float Qn = 0*data[0]
 
-    cdef long j
-    cdef long i
-    cdef long sumP
-    cdef long sumQ
+    cdef _int64 j
+    cdef _int64 i
+    cdef _int64 sumP
+    cdef _int64 sumQ
     cdef float trial
     cdef float nscale
 
@@ -254,7 +259,7 @@ cdef float _qn(np.ndarray data):
     return Qn*2.2219*nscale
 
 
-def summary_stats(object clusterid_to_taxa, np.ndarray master_nodepair_to_dist, object clusterlen_distribution, str statsfname, str treefname, long total_clustered_count, long total_taxa_count, long min_cluster_size, float fdr_cutoff, float gamma, str hytest_method, str dispersion_method, str qval_determination, int force, float within_cluster_limit, long solution_index, str sol_ver, str sol_mode, object pc_input):
+def summary_stats(object clusterid_to_taxa, np.ndarray master_nodepair_to_dist, object clusterlen_distribution, str statsfname, str treefname, _int64 total_clustered_count, _int64 total_taxa_count, _int64 min_cluster_size, float fdr_cutoff, float gamma, str hytest_method, str dispersion_method, str qval_determination, int force, float within_cluster_limit, _int64 solution_index, str sol_ver, str sol_mode, object pc_input):
 
     """
     Summary stats of within- and inter-clade divergence
@@ -262,7 +267,7 @@ def summary_stats(object clusterid_to_taxa, np.ndarray master_nodepair_to_dist, 
     cdef object cluster_to_mean_and_med_dist = {}
     cdef object taxa, pairwise_leaf_distance_distribution, mean_dist, median_dist, intercluster_dist
 
-    cdef long clusterid
+    cdef _int64 clusterid
 
     for clusterid, taxa in clusterid_to_taxa.items():
         pairwise_leaf_distance_distribution = [master_nodepair_to_dist[(leaf_x, leaf_y)] for leaf_x, leaf_y in itertools.combinations(taxa, 2)]
