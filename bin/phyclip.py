@@ -113,8 +113,11 @@ if __name__ == '__main__':
     treepath = infhandle.pop(0)
 
     # filenames
-    treefname = re.sub('([^/]+/|\.[^.]+$)', '', treepath)
-    inputfname = re.sub('([^/]+/|\.[^.]+$)', '', params.input_file)
+    treefname =  treepath.split("/")[-1]
+    treefname = re.sub("\.[^\.]+$", "", treefname)
+
+    inputfname = params.input_file.split("/")[-1]
+    inputfname = re.sub("\.[^\.]+$", "", inputfname)
 
     # parse and check newick tree file
     try:
@@ -456,7 +459,7 @@ if __name__ == '__main__':
             output_obj.figtree_output(curr_modified_tree_string)
 
             # append to summary stats output file
-            params.mode = '' # single mode of analysis for now 
+            params.mode = '' # single mode of analysis for now
             curr_coverage, curr_mu_pwd, curr_mu_icd = summary_stats(curr_clusterid_to_taxa, global_nodepair_to_dist, curr_clusterlen_distribution, statsfname, treefname, len(curr_taxon_to_clusterid), len(global_leaf_node_id_to_leafname), cs, fdr, gam, params.hypo_test, params.gam_method, 'pre' if params.preQ == 1 else 'post', params.force, curr_wcl, sol_index, solver_version, params.mode, prior_input)
 
             # optimise
